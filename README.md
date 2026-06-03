@@ -83,9 +83,3 @@ For every number:
 # 🤝 Contributions
 
 This repository is mainly for learning purposes, but suggestions and improvements are always welcome!
-
----
-
-# ⭐ If You Like This Repository
-
-Consider giving it a ⭐ on GitHub.
