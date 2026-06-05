@@ -1,0 +1,341 @@
+3753. Total Waviness of Numbers in Range II (Hard)
+
+You are given two integers num1 and num2 representing an inclusive range [num1, num2].
+
+The waviness of a number is defined as the total count of its peaks and valleys:
+
+A digit is a peak if it is strictly greater than both of its immediate neighbors.
+A digit is a valley if it is strictly less than both of its immediate neighbors.
+The first and last digits of a number cannot be peaks or valleys.
+Any number with fewer than 3 digits has a waviness of 0.
+Return the total sum of waviness for all numbers in the range [num1, num2].
+ 
+
+Example 1:
+
+Input: num1 = 120, num2 = 130
+
+Output: 3
+
+Explanation:
+
+In the range [120, 130]:
+
+120: middle digit 2 is a peak, waviness = 1.
+121: middle digit 2 is a peak, waviness = 1.
+130: middle digit 3 is a peak, waviness = 1.
+All other numbers in the range have a waviness of 0.
+Thus, total waviness is 1 + 1 + 1 = 3.
+
+Example 2:
+
+Input: num1 = 198, num2 = 202
+
+Output: 3
+
+Explanation:
+
+In the range [198, 202]:
+
+198: middle digit 9 is a peak, waviness = 1.
+201: middle digit 0 is a valley, waviness = 1.
+202: middle digit 0 is a valley, waviness = 1.
+All other numbers in the range have a waviness of 0.
+Thus, total waviness is 1 + 1 + 1 = 3.
+
+Example 3:
+
+Input: num1 = 4848, num2 = 4848
+
+Output: 2
+
+Explanation:
+
+Number 4848: the second digit 8 is a peak, and the third digit 4 is a valley, giving a waviness of 2.
+
+ 
+
+Constraints:
+
+1 <= num1 <= num2 <= 1015
+
+Test Case:
+Input:
+num1 = 120
+num2 = 130
+Output: 3
+
+Input:
+Input
+num1 = 4848
+num2 = 4848
+Output: 2
+
+Answer:
+class Solution:
+    def totalWaviness(self, num1: int, num2: int) -> int:
+        def solve(n):
+            if n <= 0:
+                return 0
+            
+            digits = list(map(int, str(n)))
+            length = len(digits)
+            
+            @lru_cache(None)
+            def dp(pos, prev2, prev1, cnt_digits, tight):
+                if pos == length:
+                    return (1, 0)
+                
+                limit = digits[pos] if tight else 9
+                
+                total_cnt = 0
+                total_wav = 0
+                
+                for d in range(limit + 1):
+                    new_tight = tight and (d == limit)
+                    
+                    if cnt_digits == 0 and d == 0:
+                        child_cnt, child_wav = dp(pos + 1, -1, -1, 0, new_tight)
+                        total_cnt += child_cnt
+                        total_wav += child_wav
+                    else:
+                        add = 0
+                        
+                        if cnt_digits >= 2:
+                            if (prev2 < prev1 > d) or (prev2 > prev1 < d):
+                                add = 1
+                        
+                        child_cnt, child_wav = dp(
+                            pos + 1,
+                            prev1,
+                            d,
+                            cnt_digits + 1,
+                            new_tight
+                        )
+                        
+                        total_cnt += child_cnt
+                        total_wav += child_wav + add * child_cnt
+                
+                return (total_cnt, total_wav)
+            
+            cnt, wav = dp(0, -1, -1, 0, True)
+            return wav
+        
+        return solve(num2) - solve(num1 - 1)
+
+
+Time Complexity: O(number_of_digits * 11 * 11 * digits * 2 * 10)
+
+Explanation:
+
+Because num2 <= 10^15, can we loop from num1 to num2 one by one?
+
+For example, range could be:
+
+1 to 1,000,000,000,000,000
+
+That is too large.
+
+So first question:
+
+What technique do you think we need when we have to count/sum something over all numbers up to a huge limit without visiting every number?
+
+We use Digit DP.
+
+
+hen final answer will be:
+
+solve(num2) - solve(num1 - 1)
+
+Now first small question:
+
+For a digit to be peak/valley, how many digits do we need to know?
+
+Example in 4848:
+
+4 8 4 8
+  ↑
+
+To decide whether 8 is peak, we need:
+
+left digit, current digit, right digit
+
+When is prev1 a peak or valley?
+
+Fill this condition:
+
+if (prev2 < prev1 > current) or (__________):
+    waviness += 1
+
+What goes in the blank for valley?
+prev2 > prev1 <current
+
+Suppose: 
+n = 527
+
+We're at the first digit.
+We choose: d = 5
+and currently: tight = True
+
+What should the new tight be?
+new_tight = ?
+
+And what if instead we choose: d = 4
+
+What should new_tight become?
+
+new_tight = False
+
+because 4__ will always be less than 527.
+
+For d = 5:
+
+new_tight = True
+
+because 5__ is still matching 527 so far.
+
+So formula is:
+
+new_tight = tight and (d == limit_digit)
+
+Example:
+
+n = 527
+limit_digit = 5
+
+
+For n = 527:
+
+if we choose 5:
+    still matching 527
+    so next limit is 2
+    new_tight = True
+if we choose 4:
+    already smaller than 527
+    so next limit is 9
+    new_tight = False
+
+So tight remains true only when the digit we choose is exactly equal to the limit digit.
+
+new_tight = tight and (d == limit)
+
+Since when tight=True, limit = digits[pos].
+
+If:
+n = 527
+pos = 0
+tight = True
+d = 5
+
+Now we can write that line:
+
+new_tight = tight and (d == limit)
+
+Next we handle leading zeros.
+
+Inside the loop:
+
+for d in range(limit + 1):
+
+If:
+
+cnt_digits == 0 and d == 0
+
+then the number still has not started.
+
+Example:
+
+0 0 7
+^ ^
+still padding
+
+So in this case, what should happen to:
+
+new_cnt_digits
+new_prev2
+new_prev1
+
+Should they stay:
+
+0, -1, -1
+
+or become:
+
+1, -1, 0
+
+
+The last two real digits move like a sliding window:
+
+before: prev2  prev1
+after:  prev1  d
+
+So:
+
+new_prev2 = prev1
+new_prev1 = d
+
+Now next key part:
+
+Before shifting, we can check whether prev1 is peak/valley using:
+
+prev2, prev1, d
+
+But only if:
+
+cnt_digits >= 2
+
+Fill this:
+
+add = 0
+
+if cnt_digits >= 2:
+    if (prev2 < prev1 > d) or (__________):
+        add = 1
+
+What goes in the blank?
+
+prev2 > prev1 < d
+
+
+add = 0
+
+if cnt_digits >= 2:
+    if (prev2 < prev1 > d) or (prev2 > prev1 < d):
+        add = 1
+
+Now let's think about what happens next.
+
+Suppose:
+
+add = 1
+
+and the recursive call returns:
+
+child_cnt, child_wav
+
+For example:
+
+child_cnt = 100
+child_wav = 350
+
+Since this newly discovered peak/valley appears in every one of those 100 completions, we should do:
+
+total_wav += child_wav + ?
+
+What should replace ??
+
+Hint: Earlier you correctly answered this when we discussed aggregate DP states.
+
+child_cnt
+
+
+So:
+
+total_wav += child_wav + add * child_cnt
+
+Why add * child_cnt?
+
+Because:
+
+if add = 0, add nothing
+if add = 1, add once for every completed number from that child
