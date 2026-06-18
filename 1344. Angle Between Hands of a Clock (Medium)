@@ -1,0 +1,75 @@
+1344. Angle Between Hands of a Clock (Medium)
+
+Hint
+Given two numbers, hour and minutes, return the smaller angle (in degrees) formed between the hour and the minute hand.
+
+Answers within 10-5 of the actual value will be accepted as correct.
+
+ 
+Example 1:
+
+
+Input: hour = 12, minutes = 30
+Output: 165
+Example 2:
+
+
+Input: hour = 3, minutes = 30
+Output: 75
+Example 3:
+
+
+Input: hour = 3, minutes = 15
+Output: 7.5
+ 
+
+Constraints:
+
+1 <= hour <= 12
+0 <= minutes <= 59
+
+Test Case:
+hour =
+12
+minutes = 30
+
+Answer:
+class Solution:
+    def angleClock(self, hour: int, minutes: int) -> float:
+        minute_angle = minutes * 6
+        hour_angle = (hour % 12) * 30 + minutes * 0.5
+
+        diff = abs(hour_angle - minute_angle)
+
+        return min(diff, 360 - diff)
+
+Time Complexity: O(1)
+
+Expanation:
+Minute hand:
+360° in 60 minutes
+Moves 360 / 60 = 6° per minute
+minute_angle = minutes * 6
+Hour hand:
+360° in 12 hours
+Moves 360 / 12 = 30° per hour
+Also moves continuously as minutes pass:
+30 / 60 = 0.5° per minute
+hour_angle = hour * 30 + minutes * 0.5
+Find the angle between the two hands:
+diff = abs(hour_angle - minute_angle)
+Since there are two angles formed, return the smaller one:
+min(diff, 360 - diff)
+Example
+
+hour = 3, minutes = 15
+
+Minute hand = 15 × 6 = 90°
+Hour hand = 3 × 30 + 15 × 0.5 = 97.5°
+Difference = |97.5 - 90| = 7.5°
+
+Answer = 7.5
+
+Common Mistake
+
+Many people use hour * 30 only and forget that the hour hand moves gradually as minutes pass. For 3:15, the hour hand is at 97.5°, not 90°.
