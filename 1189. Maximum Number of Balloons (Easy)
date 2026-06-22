@@ -1,0 +1,90 @@
+1189. Maximum Number of Balloons (Easy)
+
+
+Hint
+Given a string text, you want to use the characters of text to form as many instances of the word "balloon" as possible.
+
+You can use each character in text at most once. Return the maximum number of instances that can be formed.
+
+ 
+
+Example 1:
+
+Input: text = "nlaebolko"
+Output: 1
+Example 2:
+
+
+Input: text = "loonbalxballpoon"
+Output: 2
+Example 3:
+
+Input: text = "leetcode"
+Output: 0
+ 
+Constraints:
+
+1 <= text.length <= 10^4
+text consists of lower case English letters only.
+
+Test Case:
+Input
+text = "nlaebolko"
+Output = 1
+
+Input
+text = "loonbalxballpoon"
+Output = 2
+
+
+Answer:
+class Solution:
+    def maxNumberOfBalloons(self, text: str) -> int:
+         count = {}
+
+         for ch in text:
+            count[ch] = count.get(ch, 0) + 1
+
+         return min(
+            count.get('b', 0),
+            count.get('a', 0),
+            count.get('l', 0) // 2,
+            count.get('o', 0) // 2,
+            count.get('n', 0)
+         ) 
+
+
+Time Complexity: O(n)
+
+Explanation:
+Explanation
+
+To form "balloon" we need:
+
+b → 1
+a → 1
+l → 2
+o → 2
+n → 1
+
+So answer is the minimum possible count among these.
+
+Example
+
+For:
+
+text = "loonbalxballpoon"
+
+Counts:
+
+b = 2
+a = 2
+l = 4
+o = 4
+n = 2
+
+So:
+
+min(2, 2, 4//2, 4//2, 2) = 2
+
+Answer = 2
