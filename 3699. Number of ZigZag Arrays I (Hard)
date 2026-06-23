@@ -1,0 +1,326 @@
+3699. Number of ZigZag Arrays I (Hard)
+
+
+Hint
+
+You are given three integers n, l, and r.
+
+A ZigZag array of length n is defined as follows:
+
+    Each element lies in the range [l, r].
+    No two adjacent elements are equal.
+    No three consecutive elements form a strictly increasing or strictly decreasing sequence.
+
+Return the total number of valid ZigZag arrays.
+
+Since the answer may be large, return it modulo 109 + 7.
+
+A sequence is said to be strictly increasing if each element is strictly greater than its previous one (if exists).
+
+A sequence is said to be strictly decreasing if each element is strictly smaller than its previous one (if exists).
+
+ 
+
+Example 1:
+
+Input: n = 3, l = 4, r = 5
+
+Output: 2
+
+Explanation:
+
+There are only 2 valid ZigZag arrays of length n = 3 using values in the range [4, 5]:
+
+    [4, 5, 4]
+    [5, 4, 5]​​​​​​​
+
+Example 2:
+
+Input: n = 3, l = 1, r = 3
+
+Output: 10
+
+Explanation:
+
+There are 10 valid ZigZag arrays of length n = 3 using values in the range [1, 3]:
+
+    [1, 2, 1], [1, 3, 1], [1, 3, 2]
+    [2, 1, 2], [2, 1, 3], [2, 3, 1], [2, 3, 2]
+    [3, 1, 2], [3, 1, 3], [3, 2, 3]
+
+All arrays meet the ZigZag conditions.
+
+ 
+
+Constraints:
+
+    3 <= n <= 2000
+    1 <= l < r <= 2000
+
+
+Test Case:
+Input
+n = 3
+l = 4
+r = 5
+Output = 2
+
+Answer:
+class Solution:
+    def zigZagArrays(self, n: int, l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        m = r - l + 1
+
+        if n == 1:
+            return m
+
+        if m == 1:
+            return 0
+
+        # up[i] = count ending at value i with last move increasing
+        # down[i] = count ending at value i with last move decreasing
+        up = [0] * m
+        down = [0] * m
+
+        for i in range(m):
+            up[i] = i              # smaller values before it
+            down[i] = m - i - 1    # greater values before it
+
+        if n == 2:
+            return sum(up) + sum(down)
+
+        for _ in range(3, n + 1):
+            new_up = [0] * m
+            new_down = [0] * m
+
+            prefix = 0
+            for i in range(m):
+                new_up[i] = prefix
+                prefix = (prefix + down[i]) % MOD
+
+            suffix = 0
+            for i in range(m - 1, -1, -1):
+                new_down[i] = suffix
+                suffix = (suffix + up[i]) % MOD
+
+            up, down = new_up, new_down
+
+        return (sum(up) + sum(down)) % MOD
+
+
+Time Complexity: O(n * (r - l + 1))
+
+Explanation: 
+
+The conditions are:
+
+Every value is in [l, r].
+Adjacent values cannot be equal.
+No three consecutive values can be strictly increasing or strictly decreasing.
+What does condition 3 mean?
+
+Suppose we have:
+
+a < b < c
+
+This is strictly increasing, so it's invalid.
+
+Similarly:
+
+a > b > c
+
+is strictly decreasing, so it's invalid.
+
+Therefore, after we move up, the next move must be down.
+And after we move down, the next move must be up.
+
+Example:
+
+1 3 2 4 1
+↑ ↓ ↑ ↓
+
+Valid because directions alternate.
+
+But:
+
+1 2 3
+↑ ↑
+
+Invalid because we increased twice consecutively.
+
+DP State
+
+Let:
+
+up[i]
+
+= number of valid arrays ending at value i
+whose last move was increasing.
+
+Example:
+
+1 3
+
+ends at 3 and last move is ↑.
+
+Similarly,
+
+down[i]
+
+= number of valid arrays ending at value i
+whose last move was decreasing.
+
+Example:
+
+5 2
+
+ends at 2 and last move is ↓.
+
+Initialization (length = 2)
+
+For a value i:
+
+up[i]
+
+How many arrays of length 2 end at i with an increasing move?
+
+The previous value must be smaller than i.
+
+Example:
+
+Values = [1,2,3]
+
+up[3]
+
+Possible arrays:
+
+1 3
+2 3
+
+Count = 2.
+
+So:
+
+up[i] = number of smaller values
+down[i]
+
+Previous value must be larger than i.
+
+Example:
+
+down[2]
+
+Possible:
+
+3 2
+
+Count = 1.
+
+So:
+
+down[i] = number of larger values
+Transition
+
+Suppose we want a new array ending at value i.
+
+To get new_up[i]
+
+The last move must be ↑.
+
+So the previous move must have been ↓.
+
+Also previous value must be smaller than i.
+
+Therefore:
+
+new_up[i] =
+sum(down[j]) for all j < i
+To get new_down[i]
+
+The last move must be ↓.
+
+So the previous move must have been ↑.
+
+Also previous value must be larger than i.
+
+Therefore:
+
+new_down[i] =
+sum(up[j]) for all j > i
+Why Prefix/Suffix Sums?
+
+Directly computing:
+
+sum(down[j]) for j < i
+
+for every i would take:
+
+O(m²)
+
+where:
+
+m = r - l + 1
+
+Too slow.
+
+Instead:
+
+Prefix Sum
+
+While moving left → right:
+
+prefix += down[i]
+
+we automatically know:
+
+sum(down[0..i-1])
+
+which gives new_up[i].
+
+Suffix Sum
+
+While moving right → left:
+
+suffix += up[i]
+
+we automatically know:
+
+sum(up[i+1..])
+
+which gives new_down[i].
+
+Thus each DP layer is computed in:
+
+O(m)
+
+instead of:
+
+O(m²)
+Example
+
+For:
+
+n = 3
+l = 1
+r = 3
+
+Values are:
+
+1 2 3
+
+Length 2:
+
+up   = [0,1,2]
+down = [2,1,0]
+
+Now build length 3:
+
+new_up   = [0,2,3]
+new_down = [1,0,0]
+
+Total:
+
+0+2+3+1+0+0 = 10
+
+which matches the sample answer.
+
