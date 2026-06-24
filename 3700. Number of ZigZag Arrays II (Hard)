@@ -1,0 +1,140 @@
+3700. Number of ZigZag Arrays II (Hard)
+
+
+Hint:
+
+You are given three integers n, l, and r.
+
+A ZigZag array of length n is defined as follows:
+
+Each element lies in the range [l, r].
+No two adjacent elements are equal.
+No three consecutive elements form a strictly increasing or strictly decreasing sequence.
+Return the total number of valid ZigZag arrays.
+
+Since the answer may be large, return it modulo 109 + 7.
+
+A sequence is said to be strictly increasing if each element is strictly greater than its previous one (if exists).
+
+A sequence is said to be strictly decreasing if each element is strictly smaller than its previous one (if exists).
+
+ 
+
+Example 1:
+
+Input: n = 3, l = 4, r = 5
+
+Output: 2
+
+Explanation:
+
+There are only 2 valid ZigZag arrays of length n = 3 using values in the range [4, 5]:
+
+[4, 5, 4]
+[5, 4, 5]
+Example 2:
+
+Input: n = 3, l = 1, r = 3
+
+Output: 10
+
+Explanation:
+
+​​​​​​​There are 10 valid ZigZag arrays of length n = 3 using values in the range [1, 3]:
+
+[1, 2, 1], [1, 3, 1], [1, 3, 2]
+[2, 1, 2], [2, 1, 3], [2, 3, 1], [2, 3, 2]
+[3, 1, 2], [3, 1, 3], [3, 2, 3]
+All arrays meet the ZigZag conditions.
+
+ 
+
+Constraints:
+
+3 <= n <= 10^9
+1 <= l < r <= 75
+
+
+Test Case:
+Input
+n = 3
+l = 4
+r = 5
+Output = 2
+
+
+Answer:
+class Solution:
+    def zigZagArrays(self, n: int, l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        m = r - l + 1
+
+        if n == 1:
+            return m
+
+        up = [0] * m
+        down = [0] * m
+
+        # For length 2
+        for i in range(m):
+            up[i] = i              # previous value is smaller
+            down[i] = m - i - 1    # previous value is bigger
+
+        for _ in range(3, n + 1):
+            new_up = [0] * m
+            new_down = [0] * m
+
+            prefix = 0
+            for i in range(m):
+                new_up[i] = prefix
+                prefix = (prefix + down[i]) % MOD
+
+            suffix = 0
+            for i in range(m - 1, -1, -1):
+                new_down[i] = suffix
+                suffix = (suffix + up[i]) % MOD
+
+            up = new_up
+            down = new_down
+
+        return (sum(up) + sum(down)) % MOD
+
+
+Time Complexity: O(n * (r - l + 1))
+
+Explanation:
+A valid ZigZag array must alternate direction:
+
+up, down, up, down...
+
+or
+
+down, up, down, up...
+
+Because:
+
+1, 2, 3
+
+has two increasing moves, so it is invalid.
+
+We use DP:
+
+up[i]
+
+means number of arrays ending at value i where the last move was increasing.
+
+down[i]
+
+means number of arrays ending at value i where the last move was decreasing.
+
+For a new increasing move:
+
+new_up[i] = sum of down[j] where j < i
+
+For a new decreasing move:
+
+new_down[i] = sum of up[j] where j > i
+
+Prefix sum helps calculate new_up.
+
+Suffix sum helps calculate new_down.
