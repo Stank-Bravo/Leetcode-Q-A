@@ -100,6 +100,74 @@ class Solution:
         return (sum(up) + sum(down)) % MOD
 
 
+
+Optimized Solution:
+
+class Solution:
+    def zigZagArrays(self, n: int, l: int, r: int) -> int:
+        MOD = 10**9 + 7
+        m = r - l + 1
+
+        if n == 1:
+            return m
+        if m == 1:
+            return 0
+        if n == 2:
+            return m * (m - 1) % MOD
+
+        size = 2 * m
+
+        def mat_mul(A, B):
+            C = [[0] * size for _ in range(size)]
+            for i in range(size):
+                for k in range(size):
+                    if A[i][k]:
+                        for j in range(size):
+                            C[i][j] = (C[i][j] + A[i][k] * B[k][j]) % MOD
+            return C
+
+        def mat_vec_mul(A, v):
+            res = [0] * size
+            for i in range(size):
+                total = 0
+                for j in range(size):
+                    total += A[i][j] * v[j]
+                res[i] = total % MOD
+            return res
+
+        # initial DP for length 2
+        vec = [0] * size
+
+        for i in range(m):
+            vec[i] = i              # up
+            vec[m + i] = m - i - 1  # down
+
+        # transition matrix
+        T = [[0] * size for _ in range(size)]
+
+        for i in range(m):
+            # new_up[i] = sum(down[j]) for j < i
+            for j in range(i):
+                T[i][m + j] = 1
+
+            # new_down[i] = sum(up[j]) for j > i
+            for j in range(i + 1, m):
+                T[m + i][j] = 1
+
+        power = n - 2
+
+        while power:
+            if power & 1:
+                vec = mat_vec_mul(T, vec)
+
+            T = mat_mul(T, T)
+            power //= 2
+
+        return sum(vec) % MOD
+
+
+
+
 Time Complexity: O(n * (r - l + 1))
 
 Explanation:
