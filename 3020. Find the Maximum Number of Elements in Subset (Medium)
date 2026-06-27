@@ -1,0 +1,227 @@
+3020. Find the Maximum Number of Elements in Subset (Medium)
+
+
+Hint
+You are given an array of positive integers nums.
+
+You need to select a subset of nums which satisfies the following condition:
+
+You can place the selected elements in a 0-indexed array such that it follows the pattern: [x, x2, x4, ..., xk/2, xk, xk/2, ..., x4, x2, x] (Note that k can be be any non-negative power of 2). For example, [2, 4, 16, 4, 2] and [3, 9, 3] follow the pattern while [2, 4, 8, 4, 2] does not.
+Return the maximum number of elements in a subset that satisfies these conditions.
+
+ 
+
+Example 1:
+
+Input: nums = [5,4,1,2,2]
+Output: 3
+Explanation: We can select the subset {4,2,2}, which can be placed in the array as [2,4,2] which follows the pattern and 22 == 4. Hence the answer is 3.
+Example 2:
+
+Input: nums = [1,3,2,4]
+Output: 1
+Explanation: We can select the subset {1}, which can be placed in the array as [1] which follows the pattern. Hence the answer is 1. Note that we could have also selected the subsets {2}, {3}, or {4}, there may be multiple subsets which provide the same answer. 
+ 
+
+Constraints:
+
+2 <= nums.length <= 10^5
+1 <= nums[i] <= 10^9
+
+
+Test Case:
+Input
+nums = [5,4,1,2,2]
+Output = 3
+
+
+Answer:
+class Solution:
+    def maximumLength(self, nums: List[int]) -> int:
+        count = Counter(nums)
+        ans = 1
+
+        # Special case for 1
+        # Pattern can be [1, 1, 1, ...] but length must be odd
+        if 1 in count:
+            ans = max(ans, count[1] if count[1] % 2 == 1 else count[1] - 1)
+
+        for x in count:
+            if x == 1:
+                continue
+
+            length = 0
+            cur = x
+
+            while cur in count:
+                if count[cur] >= 2:
+                    length += 2
+                    cur = cur * cur
+                else:
+                    length += 1
+                    break
+
+            # If chain ended after using pair but no middle found,
+            # remove one element to make valid odd length
+            if length % 2 == 0:
+                length -= 1
+
+            ans = max(ans, length)
+
+        return ans
+
+Time Complexity: O(n log log max(nums))
+
+
+Explanation:
+A valid subset must be arranged like:
+
+[x, x², x⁴, ..., middle, ..., x⁴, x², x]
+
+Notice:
+
+The sequence is symmetric.
+Every value except the middle appears twice (one on each side).
+The middle appears once.
+Therefore, the total length is always odd.
+Observations
+
+Suppose we start with x = 2.
+
+The chain becomes:
+
+2 → 4 → 16 → 256 → ...
+
+To continue the chain:
+
+2 needs 2 copies
+4 needs 2 copies
+16 needs 2 copies
+...
+The last value (middle) only needs 1 copy
+
+Example:
+
+nums = [2,2,4,4,16]
+
+We can form
+
+[2,4,16,4,2]
+
+Length = 5
+
+Why check count[cur] >= 2?
+if count[cur] >= 2:
+
+If a number appears at least twice, we can place one on the left and one on the right.
+
+So we increase the answer by 2.
+
+length += 2
+
+Then move to its square.
+
+cur = cur * cur
+Why stop when frequency is 1?
+
+Suppose
+
+2 : 2 times
+4 : 2 times
+16 : 1 time
+
+Then we can make
+
+[2,4,16,4,2]
+
+Here 16 becomes the middle element.
+
+So
+
+length += 1
+break
+Why subtract 1 if length is even?
+
+Consider
+
+2 : 2
+4 : 2
+
+The loop counts
+
+2 contributes 2
+4 contributes 2
+
+Length = 4
+
+But there is no middle element.
+
+We cannot build
+
+[2,4,4,2]
+
+because it doesn't follow the required pattern (the middle should appear only once).
+
+So we remove one element:
+
+length -= 1
+
+Now
+
+length = 3
+
+which corresponds to
+
+[2,4,2]
+Special case: 1
+
+For every other number,
+
+x² > x
+
+so the chain keeps growing.
+
+But
+
+1² = 1
+
+The chain never changes.
+
+If we have
+
+1 1 1 1 1
+
+we can arrange
+
+[1,1,1,1,1]
+
+which is valid.
+
+Since the answer must have odd length:
+
+5 ones → answer = 5
+4 ones → answer = 3 (remove one)
+
+Hence:
+
+ans = max(ans, count[1] if count[1] % 2 else count[1] - 1)
+Example Walkthrough
+nums = [5,4,1,2,2]
+
+Frequency:
+
+1 -> 1
+2 -> 2
+4 -> 1
+5 -> 1
+
+Start with 2:
+
+2 (2 copies)  -> length = 2
+4 (1 copy)    -> length = 3 (middle)
+
+Pattern:
+
+[2,4,2]
+
+Answer = 3
