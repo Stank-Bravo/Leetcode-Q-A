@@ -1,0 +1,110 @@
+1. Two Sum (Easy)
+
+
+
+Hint
+Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+
+You may assume that each input would have exactly one solution, and you may not use the same element twice.
+
+You can return the answer in any order.
+
+ 
+
+Example 1:
+
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
+Example 2:
+
+Input: nums = [3,2,4], target = 6
+Output: [1,2]
+Example 3:
+
+Input: nums = [3,3], target = 6
+Output: [0,1]
+ 
+
+Constraints:
+
+2 <= nums.length <= 10^4
+-10^9 <= nums[i] <= 10^9
+-10^9 <= target <= 10^9
+Only one valid answer exists.
+ 
+
+Follow-up: Can you come up with an algorithm that is less than O(n2) time complexity?
+
+
+Test Case:
+Input
+nums = [2,7,11,15]
+target = 9
+Output = [0,1]
+
+
+Input
+nums = [3,2,4]
+target = 6
+Output = [1,2]
+
+Answer:
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        seen = {}
+
+        for i, num in enumerate(nums):
+            complement = target - num
+
+            if complement in seen:
+                return [seen[complement], i]
+
+            seen[num] = i
+
+
+Time Complexity: O(n²)
+
+
+Explanation
+
+The idea is to find two numbers whose sum equals target.
+
+For each number num, calculate the number needed to reach the target:
+
+complement = target - num
+
+Before storing the current number, check whether this complement has already been seen.
+
+If it has, we have found the pair, so return their indices.
+Otherwise, store the current number and its index in the hash map.
+
+The hash map stores:
+
+number -> index
+
+This allows us to check for the complement in O(1) time.
+
+Example
+nums = [2,7,11,15]
+target = 9
+i	num	complement	Hash Map	Answer
+0	2	7	{}	Store 2 → 0
+1	7	2	{2:0}	2 found → [0,1]
+
+Return:
+
+[0, 1]
+Another Example
+nums = [3,2,4]
+target = 6
+i	num	complement	Hash Map
+0	3	3	{}
+1	2	4	{3:0}
+2	4	2	{3:0,2:1} → Found
+
+Answer:
+
+[1,2]
+
+
