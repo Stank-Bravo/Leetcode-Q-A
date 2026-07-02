@@ -1,0 +1,269 @@
+3286. Find a Safe Walk Through a Grid (Medium)
+
+
+Hint
+You are given an m x n binary matrix grid and an integer health.
+
+You start on the upper-left corner (0, 0) and would like to get to the lower-right corner (m - 1, n - 1).
+
+You can move up, down, left, or right from one cell to another adjacent cell as long as your health remains positive.
+
+Cells (i, j) with grid[i][j] = 1 are considered unsafe and reduce your health by 1.
+
+Return true if you can reach the final cell with a health value of 1 or more, and false otherwise.
+
+ 
+
+Example 1:
+
+Input: grid = [[0,1,0,0,0],[0,1,0,1,0],[0,0,0,1,0]], health = 1
+
+Output: true
+
+Explanation:
+
+The final cell can be reached safely by walking along the gray cells below.
+
+
+Example 2:
+
+Input: grid = [[0,1,1,0,0,0],[1,0,1,0,0,0],[0,1,1,1,0,1],[0,0,1,0,1,0]], health = 3
+
+Output: false
+
+Explanation:
+
+A minimum of 4 health points is needed to reach the final cell safely.
+
+
+Example 3:
+
+Input: grid = [[1,1,1],[1,0,1],[1,1,1]], health = 5
+
+Output: true
+
+Explanation:
+
+The final cell can be reached safely by walking along the gray cells below.
+
+
+
+Any path that does not go through the cell (1, 1) is unsafe since your health will drop to 0 when reaching the final cell.
+
+ 
+
+Constraints:
+
+m == grid.length
+n == grid[i].length
+1 <= m, n <= 50
+2 <= m * n
+1 <= health <= m + n
+grid[i][j] is either 0 or 1.
+
+
+Test Case:
+Input
+grid = [[0,1,0,0,0],[0,1,0,1,0],[0,0,0,1,0]]
+health = 1
+Output = true
+
+
+
+Input
+grid = [[0,1,1,0,0,0],[1,0,1,0,0,0],[0,1,1,1,0,1],[0,0,1,0,1,0]]
+health = 3
+Output = false
+
+
+Answer:
+from typing import List
+from collections import deque
+
+class Solution:
+    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:
+        m, n = len(grid), len(grid[0])
+
+        INF = float("inf")
+        dist = [[INF] * n for _ in range(m)]
+
+        dist[0][0] = grid[0][0]
+        dq = deque([(0, 0)])
+
+        dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+        while dq:
+            x, y = dq.popleft()
+
+            for dx, dy in dirs:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < m and 0 <= ny < n:
+                    w = grid[nx][ny]
+                    if dist[x][y] + w < dist[nx][ny]:
+                        dist[nx][ny] = dist[x][y] + w
+                        if w == 0:
+                            dq.appendleft((nx, ny))
+                        else:
+                            dq.append((nx, ny))
+
+        return dist[m - 1][n - 1] < health
+
+
+
+Time Complexity: O(m * n)
+
+Explanation:
+Every time you enter:
+
+a safe cell (0) → health does not decrease.
+an unsafe cell (1) → health decreases by 1.
+
+So instead of thinking about remaining health, think about how much health is lost.
+
+If the minimum health loss to reach the destination is x, then you need
+
+health - x >= 1
+
+which is equivalent to
+
+x < health
+
+Therefore, we only need to find the minimum number of unsafe cells visited on any path.
+
+Why 0-1 BFS?
+
+Each move has only two possible costs:
+
+Moving into a safe cell → cost 0
+Moving into an unsafe cell → cost 1
+
+A graph whose edge weights are only 0 or 1 can be solved more efficiently using 0-1 BFS instead of Dijkstra.
+
+What does dist[i][j] store?
+dist[i][j]
+
+stores the minimum health lost to reach cell (i, j).
+
+Initially,
+
+dist = [[INF] * n for _ in range(m)]
+dist[0][0] = grid[0][0]
+
+If the starting cell is unsafe (1), we immediately lose one health.
+
+Why use a deque?
+
+A deque lets us process 0-cost moves first.
+
+Suppose we're at (x, y).
+
+For each neighbor:
+
+w = grid[nx][ny]
+
+w is either 0 or 1.
+
+If
+
+dist[x][y] + w < dist[nx][ny]
+
+we found a better path.
+
+Case 1: Safe cell (w == 0)
+dq.appendleft((nx, ny))
+
+Since no extra health is lost, this state has the same priority as the current one, so we process it immediately.
+
+Case 2: Unsafe cell (w == 1)
+dq.append((nx, ny))
+
+Since health loss increases by one, it should be processed after all current zero-cost paths.
+
+This ordering is exactly why 0-1 BFS works.
+
+Example
+0 1 0
+0 0 1
+0 0 0
+
+Health = 2
+
+Start:
+
+dist =
+0 ∞ ∞
+∞ ∞ ∞
+∞ ∞ ∞
+
+Queue:
+
+[(0,0)]
+
+From (0,0):
+
+Move down (cost 0)
+
+dist[1][0] = 0
+appendleft
+
+Move right (cost 1)
+
+dist[0][1] = 1
+append
+
+Queue becomes
+
+[(1,0), (0,1)]
+
+Notice the zero-cost path is explored first.
+
+Eventually we obtain
+
+dist =
+0 1 0
+0 0 1
+0 0 0
+
+Minimum health loss to reach destination is
+
+dist[2][2] = 0
+
+Since
+
+0 < health (2)
+
+we return
+
+True
+
+Final Check
+
+After the BFS,
+
+return dist[m-1][n-1] < health
+
+Suppose:
+
+health = 5
+Minimum health loss = 4
+
+Remaining health:
+
+5 - 4 = 1
+
+Valid, so
+
+4 < 5  → True
+
+If
+
+health = 4
+Minimum loss = 4
+
+Remaining health:
+
+4 - 4 = 0
+
+Health is not positive, so the answer is
+
+4 < 4 → False
