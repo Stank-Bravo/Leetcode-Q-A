@@ -1,0 +1,250 @@
+1301. Number of Paths with Max Score (Hard)
+
+
+
+Hint
+
+You are given a square board of characters. You can move on the board starting at the bottom right square marked with the character 'S'.
+
+You need to reach the top left square marked with the character 'E'. The rest of the squares are labeled either with a numeric character 1, 2, ..., 9 or with an obstacle 'X'. In one move you can go up, left or up-left (diagonally) only if there is no obstacle there.
+
+Return a list of two integers: the first integer is the maximum sum of numeric characters you can collect, and the second is the number of such paths that you can take to get that maximum sum, taken modulo 10^9 + 7.
+
+In case there is no path, return [0, 0].
+
+ 
+
+Example 1:
+
+Input: board = ["E23","2X2","12S"]
+Output: [7,1]
+
+Example 2:
+
+Input: board = ["E12","1X1","21S"]
+Output: [4,2]
+
+Example 3:
+
+Input: board = ["E11","XXX","11S"]
+Output: [0,0]
+
+ 
+
+Constraints:
+2 <= board.length == board[i].length <= 100
+
+
+Test Case:
+Input
+board = ["E23","2X2","12S"]
+Output = [7,1]
+
+
+Input
+board = ["E12","1X1","21S"]
+Output = [4,2]
+
+
+Answer:
+from typing import List
+
+class Solution:
+    def pathsWithMaxScore(self, board: List[str]) -> List[int]:
+        MOD = 10**9 + 7
+        n = len(board)
+
+        score = [[-1] * n for _ in range(n)]
+        ways = [[0] * n for _ in range(n)]
+
+        score[n - 1][n - 1] = 0
+        ways[n - 1][n - 1] = 1
+
+        for i in range(n - 1, -1, -1):
+            for j in range(n - 1, -1, -1):
+
+                if board[i][j] == 'X' or (i == n - 1 and j == n - 1):
+                    continue
+
+                best = -1
+                cnt = 0
+
+                for x, y in ((i + 1, j), (i, j + 1), (i + 1, j + 1)):
+                    if x >= n or y >= n:
+                        continue
+                    if score[x][y] == -1:
+                        continue
+
+                    if score[x][y] > best:
+                        best = score[x][y]
+                        cnt = ways[x][y]
+                    elif score[x][y] == best:
+                        cnt = (cnt + ways[x][y]) % MOD
+
+                if best == -1:
+                    continue
+
+                val = 0
+                if board[i][j].isdigit():
+                    val = int(board[i][j])
+
+                score[i][j] = best + val
+                ways[i][j] = cnt
+
+        if ways[0][0] == 0:
+            return [0, 0]
+
+        return [score[0][0], ways[0][0]]
+
+
+
+
+Time Complexity: O(n²)
+
+
+
+Explanation:
+DP State
+
+Let
+
+score[i][j]
+
+= maximum score obtainable from S to (i,j).
+
+Let
+
+ways[i][j]
+
+= number of maximum-score paths.
+
+Initially,
+
+score = [[-1]*n for _ in range(n)]
+ways = [[0]*n for _ in range(n)]
+
+At S
+
+score[n-1][n-1] = 0
+ways[n-1][n-1] = 1
+
+Score is 0 because S itself doesn't contribute.
+
+Transition
+
+Suppose we're computing (i,j).
+
+Ignore it if
+
+board[i][j] == 'X'
+
+Look at
+
+(i+1,j)
+(i,j+1)
+(i+1,j+1)
+
+Among these three, find the largest score.
+
+Example
+
+8
+7
+8
+
+Maximum = 8.
+
+Only parents having score 8 contribute.
+
+If two parents have score 8,
+
+8 ways=3
+7 ways=5
+8 ways=2
+
+then
+
+ways = 3+2 =5
+Current Cell Value
+
+If current cell is
+
+'5'
+
+then
+
+score = best + 5
+
+If current cell is
+
+E
+
+don't add anything.
+
+Similarly for S.
+
+Example
+E23
+2X2
+12S
+
+Initialize
+
+0
+
+at S.
+
+E 2 3
+2 X 2
+1 2 S
+
+Fill backwards.
+
+At cell 2
+
+score = 2
+
+Next
+
+1 ->3
+
+Continue.
+
+Finally
+
+E =7
+ways=1
+
+Answer
+
+[7,1]
+Why keep two arrays?
+
+Suppose
+
+Parent A
+
+score=10
+ways=3
+
+Parent B
+
+score=10
+ways=5
+
+Both are equally good.
+
+Then
+
+current score =10+cellValue
+
+ways =3+5
+
+If instead
+
+10
+9
+
+Only the first parent contributes.
+
+
