@@ -1,0 +1,194 @@
+1288. Remove Covered Intervals (Medium)
+
+
+
+
+Hint
+Given an array intervals where intervals[i] = [li, ri] represent the interval [li, ri), remove all intervals that are covered by another interval in the list.
+
+The interval [a, b) is covered by the interval [c, d) if and only if c <= a and b <= d.
+
+Return the number of remaining intervals.
+
+ 
+
+Example 1:
+
+Input: intervals = [[1,4],[3,6],[2,8]]
+Output: 2
+Explanation: Interval [3,6] is covered by [2,8], therefore it is removed.
+Example 2:
+
+Input: intervals = [[1,4],[2,3]]
+Output: 1
+ 
+
+Constraints:
+
+1 <= intervals.length <= 1000
+intervals[i].length == 2
+0 <= li < ri <= 10^5
+All the given intervals are unique.
+
+
+
+Test Case:
+Input
+intervals =
+[[1,4],[3,6],[2,8]]
+Output
+2
+
+
+
+Answer:
+class Solution:
+    def removeCoveredIntervals(self, intervals: List[List[int]]) -> int:
+        intervals.sort(key=lambda x: (x[0], -x[1]))
+
+        ans = 0
+        maxEnd = -1
+
+        for start, end in intervals:
+            if end > maxEnd:
+                ans += 1
+                maxEnd = end
+
+        return ans
+
+
+Time Complexity: 
+Sorting: O(n log n)
+
+Traversal: O(n)
+
+Total: O(n log n)
+
+
+
+Explanation:
+
+
+An interval [a, b] is covered by [c, d] if
+
+c <= a
+and
+b <= d
+
+A simple O(n²) solution compares every pair, but we can do it in O(n log n) by sorting.
+
+Sorting Trick
+
+Sort intervals by:
+
+Starting point in increasing order
+Ending point in decreasing order (if starts are equal)
+intervals.sort(key=lambda x: (x[0], -x[1]))
+Why decreasing end?
+
+Suppose we have
+
+[1,5]
+[1,4]
+
+If we sort by increasing end,
+
+[1,4]
+[1,5]
+
+When we reach [1,5], we've already passed [1,4] and can't detect that [1,4] is covered.
+
+Sorting by decreasing end gives
+
+[1,5]
+[1,4]
+
+Now it's easy to identify [1,4] as covered.
+
+Main Observation
+
+After sorting:
+
+Starts are already increasing.
+We only need to keep track of the largest end seen so far.
+
+Let
+
+maxEnd
+
+be the maximum right endpoint encountered.
+
+For every interval:
+
+if end <= maxEnd
+it is covered.
+otherwise
+it is not covered.
+update maxEnd.
+Example 1
+[[1,4],[3,6],[2,8]]
+
+After sorting
+
+[1,4]
+[2,8]
+[3,6]
+
+Initialize
+
+maxEnd = -∞
+ans = 0
+Interval [1,4]
+4 > -∞
+
+Not covered.
+
+ans = 1
+maxEnd = 4
+Interval [2,8]
+8 > 4
+
+Not covered.
+
+ans = 2
+maxEnd = 8
+Interval [3,6]
+6 <= 8
+
+Covered by [2,8].
+
+Ignore it.
+
+Answer = 2
+
+Example 2
+[[1,4],[2,3]]
+
+Sorted
+
+[1,4]
+[2,3]
+
+maxEnd = 4
+
+Second interval
+
+3 <= 4
+
+Covered.
+
+Answer = 1
+
+Correctness
+
+Because:
+
+Starts are increasing.
+If an interval is covered, its covering interval must appear before it.
+maxEnd stores the farthest ending point among all previous intervals.
+
+So
+
+end <= maxEnd
+
+is exactly the condition for being covered.
