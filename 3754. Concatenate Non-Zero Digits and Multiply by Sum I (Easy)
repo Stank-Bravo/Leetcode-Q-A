@@ -1,0 +1,149 @@
+3754. Concatenate Non-Zero Digits and Multiply by Sum I (Easy)
+
+
+
+
+
+Hint
+You are given an integer n.
+
+Form a new integer x by concatenating all the non-zero digits of n in their original order. If there are no non-zero digits, x = 0.
+
+Let sum be the sum of digits in x.
+
+Return an integer representing the value of x * sum.
+
+ 
+
+Example 1:
+
+Input: n = 10203004
+
+Output: 12340
+
+Explanation:
+
+The non-zero digits are 1, 2, 3, and 4. Thus, x = 1234.
+The sum of digits is sum = 1 + 2 + 3 + 4 = 10.
+Therefore, the answer is x * sum = 1234 * 10 = 12340.
+Example 2:
+
+Input: n = 1000
+
+Output: 1
+
+Explanation:
+
+The non-zero digit is 1, so x = 1 and sum = 1.
+Therefore, the answer is x * sum = 1 * 1 = 1.
+ 
+
+Constraints:
+
+0 <= n <= 10^9
+
+
+
+Test Case:
+Input
+n = 10203004
+Output = 12340
+
+
+
+Answer:
+class Solution:
+    def sumAndMultiply(self, n: int) -> int:
+        x = 0
+        digit_sum = 0
+
+        for ch in str(n):
+            if ch != '0':
+                d = int(ch)
+                x = x * 10 + d
+                digit_sum += d
+
+        return x * digit_sum
+
+
+
+Time Complexity: O(d), where d is the number of digits in n, since each digit is processed once.
+
+
+
+
+
+Explanation:
+The idea is to construct the number formed by all non-zero digits while simultaneously computing their sum.
+
+Algorithm
+Initialize:
+x = 0 to store the concatenated number.
+digit_sum = 0 to store the sum of non-zero digits.
+Convert n to a string and iterate through each digit.
+For each digit:
+If it is '0', ignore it.
+Otherwise:
+Convert it to an integer d.
+
+Append it to x using:
+
+x = x * 10 + d
+
+Add it to the sum:
+
+digit_sum += d
+
+After processing all digits, return:
+
+x * digit_sum
+Why x = x * 10 + d?
+
+Suppose the non-zero digits processed so far are:
+
+1, 2, 3
+
+Initially:
+
+x = 0
+
+After reading 1:
+
+x = 0 × 10 + 1 = 1
+
+After reading 2:
+
+x = 1 × 10 + 2 = 12
+
+After reading 3:
+
+x = 12 × 10 + 3 = 123
+
+Multiplying by 10 shifts the existing digits one place to the left, allowing the new digit to be appended.
+
+Example
+
+Input:
+
+n = 10203004
+
+Processing each digit:
+
+Digit	Action	x	digit_sum
+1	Append	1	1
+0	Ignore	1	1
+2	Append	12	3
+0	Ignore	12	3
+3	Append	123	6
+0	Ignore	123	6
+0	Ignore	123	6
+4	Append	1234	10
+
+Finally:
+
+x = 1234
+digit_sum = 10
+
+Answer:
+
+1234 × 10 = 12340
