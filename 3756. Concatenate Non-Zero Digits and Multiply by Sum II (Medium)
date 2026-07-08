@@ -1,0 +1,237 @@
+3756. Concatenate Non-Zero Digits and Multiply by Sum II (Medium)
+
+
+
+
+Hint
+You are given a string s of length m consisting of digits. You are also given a 2D integer array queries, where queries[i] = [li, ri].
+
+For each queries[i], extract the substring s[li..ri]. Then, perform the following:
+
+Form a new integer x by concatenating all the non-zero digits from the substring in their original order. If there are no non-zero digits, x = 0.
+Let sum be the sum of digits in x. The answer is x * sum.
+Return an array of integers answer where answer[i] is the answer to the ith query.
+
+Since the answers may be very large, return them modulo 109 + 7.
+
+ 
+
+Example 1:
+
+Input: s = "10203004", queries = [[0,7],[1,3],[4,6]]
+
+Output: [12340, 4, 9]
+
+Explanation:
+
+s[0..7] = "10203004"
+x = 1234
+sum = 1 + 2 + 3 + 4 = 10
+Therefore, answer is 1234 * 10 = 12340.
+s[1..3] = "020"
+x = 2
+sum = 2
+Therefore, the answer is 2 * 2 = 4.
+s[4..6] = "300"
+x = 3
+sum = 3
+Therefore, the answer is 3 * 3 = 9.
+Example 2:
+
+Input: s = "1000", queries = [[0,3],[1,1]]
+
+Output: [1, 0]
+
+Explanation:
+
+s[0..3] = "1000"
+x = 1
+sum = 1
+Therefore, the answer is 1 * 1 = 1.
+s[1..1] = "0"
+x = 0
+sum = 0
+Therefore, the answer is 0 * 0 = 0.
+Example 3:
+
+Input: s = "9876543210", queries = [[0,9]]
+
+Output: [444444137]
+
+Explanation:
+
+s[0..9] = "9876543210"
+x = 987654321
+sum = 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 = 45
+Therefore, the answer is 987654321 * 45 = 44444444445.
+We return 44444444445 modulo (109 + 7) = 444444137.
+ 
+
+Constraints:
+
+1 <= m == s.length <= 10^5
+s consists of digits only.
+1 <= queries.length <= 10^5
+queries[i] = [li, ri]
+0 <= li <= ri < m
+
+
+
+Test Case:
+Input
+s = "10203004"
+queries = [[0,7],[1,3],[4,6]]
+Output = [12340,4,9]
+
+
+
+Input
+s = "1000"
+queries = [[0,3],[1,1]]
+Output = [1,0]
+
+
+Answer:
+class Solution:
+    def sumAndMultiply(self, s: str, queries: List[List[int]]) -> List[int]:
+        MOD = 10**9 + 7
+        n = len(s)
+
+        # prefix count of non-zero digits in original string
+        cnt = [0] * (n + 1)
+
+        digits = []
+
+        for i, ch in enumerate(s):
+            cnt[i + 1] = cnt[i]
+            if ch != '0':
+                cnt[i + 1] += 1
+                digits.append(int(ch))
+
+        m = len(digits)
+
+        # powers of 10
+        pow10 = [1] * (m + 1)
+        for i in range(1, m + 1):
+            pow10[i] = (pow10[i - 1] * 10) % MOD
+
+        # prefix concatenated value
+        pref = [0] * (m + 1)
+        # prefix digit sum
+        prefSum = [0] * (m + 1)
+
+        for i, d in enumerate(digits):
+            pref[i + 1] = (pref[i] * 10 + d) % MOD
+            prefSum[i + 1] = prefSum[i] + d
+
+        ans = []
+
+        for l, r in queries:
+            a = cnt[l]
+            b = cnt[r + 1]
+
+            if a == b:
+                ans.append(0)
+                continue
+
+            x = (pref[b] - pref[a] * pow10[b - a]) % MOD
+            digit_sum = prefSum[b] - prefSum[a]
+
+            ans.append((x * digit_sum) % MOD)
+
+        return ans
+
+
+
+Time Complexity: 
+
+Let
+
+m = len(s)
+q = len(queries)
+
+Preprocessing:
+
+Time: O(m)
+Space: O(m)
+
+Each query:
+
+O(1)
+
+Overall:
+
+Time: O(m + q)
+Space: O(m)
+
+
+Explanation:
+Create:
+
+pos = positions of all non-zero digits.
+digits = corresponding non-zero digits.
+
+For example,
+
+s = "10203004"
+
+pos    = [0,2,4,7]
+digits = [1,2,3,4]
+
+Now preprocess on digits:
+
+Prefix hash to compute the concatenated number modulo 10
+9
++7.
+Prefix digit sum.
+Powers of 10.
+
+For each query [l,r]:
+
+Let a = number of non-zero digits before l.
+Let b = number of non-zero digits up to r.
+
+These are obtained using a prefix count over the original string.
+
+Then the required digits are exactly
+
+digits[a:b]
+
+If a == b, there are no non-zero digits, so answer is 0.
+
+Otherwise,
+
+x = concatenated value of digits[a:b]
+sum = sum of digits[a:b]
+
+Return
+
+x * sum mod MOD
+Computing x in O(1)
+
+Let
+
+pref[i]
+
+be the concatenated value of the first i non-zero digits.
+
+For example,
+
+digits = [1,2,3,4]
+
+pref =
+0
+1
+12
+123
+1234
+
+Transition:
+
+pref[i+1] = pref[i] * 10 + digits[i]
+
+Then the value of any segment [a,b) is
+
+x = pref[b] - pref[a] * 10^(b-a)
+
+(modulo MOD).
