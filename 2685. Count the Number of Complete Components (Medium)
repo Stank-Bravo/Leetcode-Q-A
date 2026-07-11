@@ -1,0 +1,291 @@
+2685. Count the Number of Complete Components (Medium)
+
+
+
+
+Hint
+You are given an integer n. There is an undirected graph with n vertices, numbered from 0 to n - 1. You are given a 2D integer array edges where edges[i] = [ai, bi] denotes that there exists an undirected edge connecting vertices ai and bi.
+
+Return the number of complete connected components of the graph.
+
+A connected component is a subgraph of a graph in which there exists a path between any two vertices, and no vertex of the subgraph shares an edge with a vertex outside of the subgraph.
+
+A connected component is said to be complete if there exists an edge between every pair of its vertices.
+
+ 
+
+Example 1:
+
+
+
+Input: n = 6, edges = [[0,1],[0,2],[1,2],[3,4]]
+Output: 3
+Explanation: From the picture above, one can see that all of the components of this graph are complete.
+Example 2:
+
+
+
+Input: n = 6, edges = [[0,1],[0,2],[1,2],[3,4],[3,5]]
+Output: 1
+Explanation: The component containing vertices 0, 1, and 2 is complete since there is an edge between every pair of two vertices. On the other hand, the component containing vertices 3, 4, and 5 is not complete since there is no edge between vertices 4 and 5. Thus, the number of complete components in this graph is 1.
+ 
+
+Constraints:
+
+1 <= n <= 50
+0 <= edges.length <= n * (n - 1) / 2
+edges[i].length == 2
+0 <= ai, bi <= n - 1
+ai != bi
+
+
+
+Test Case:
+Input
+n =
+6
+edges =
+[[0,1],[0,2],[1,2],[3,4]]
+Output
+3
+
+
+
+Answer:
+from typing import List
+
+class Solution:
+    def countCompleteComponents(self, n: int, edges: List[List[int]]) -> int:
+        graph = [[] for _ in range(n)]
+
+        for u, v in edges:
+            graph[u].append(v)
+            graph[v].append(u)
+
+        visited = [False] * n
+        ans = 0
+
+        def dfs(node, comp):
+            visited[node] = True
+            comp.append(node)
+
+            for nei in graph[node]:
+                if not visited[nei]:
+                    dfs(nei, comp)
+
+        for i in range(n):
+            if visited[i]:
+                continue
+
+            comp = []
+            dfs(i, comp)
+
+            vertices = len(comp)
+            degree_sum = sum(len(graph[node]) for node in comp)
+            actual_edges = degree_sum // 2
+            expected_edges = vertices * (vertices - 1) // 2
+
+            if actual_edges == expected_edges:
+                ans += 1
+
+        return ans
+
+
+
+Time Complexity: 
+Let
+
+V=n
+E=edges
+
+DFS visits every node and edge once.
+
+Time
+
+O(V+E)
+
+
+
+Explanation:
+
+
+
+A component with k vertices is complete if every pair of vertices has an edge.
+
+A complete graph with k vertices has exactly
+
+k * (k - 1) / 2
+
+edges.
+
+So after finding a component, we only need to compare:
+
+Actual number of edges
+Expected number of edges
+
+
+
+
+Step 1: Build Graph
+
+Create an adjacency list.
+
+graph[u].append(v)
+graph[v].append(u)
+Step 2: DFS
+
+For every unvisited node,
+
+run DFS to collect all vertices in its connected component.
+
+Example
+
+0--1
+ \ |
+  2
+
+3--4
+
+5
+
+DFS from 0 gives
+
+{0,1,2}
+
+DFS from 3
+
+{3,4}
+
+DFS from 5
+
+{5}
+Step 3: Count Edges
+
+Suppose the component is
+
+{0,1,2}
+
+Each vertex contributes its degree.
+
+deg(0)=2
+deg(1)=2
+deg(2)=2
+
+Total
+
+2+2+2=6
+
+But every edge is counted twice.
+
+So
+
+edges = degree_sum // 2
+
+Here
+
+6/2 = 3
+Step 4: Compare
+
+If component has
+
+k vertices
+
+Expected edges are
+
+k * (k - 1) // 2
+
+If
+
+actual == expected
+
+then it is complete.
+
+Example 1
+0--1
+|\ |
+| \|
+2
+
+3--4
+
+5
+
+Component 1
+
+Vertices =3
+
+Expected edges
+
+3*2/2=3
+
+Actual
+
+(0,1)
+(1,2)
+(0,2)
+
+=3
+
+Complete.
+
+Component
+
+3--4
+
+Vertices
+
+2
+
+Expected
+
+1
+
+Actual
+
+1
+
+Complete.
+
+Component
+
+5
+
+Vertices
+
+1
+
+Expected
+
+0
+
+Actual
+
+0
+
+Complete.
+
+Answer
+
+3
+Example 2
+
+Component
+
+3
+
+/ \
+4   5
+
+Vertices
+
+3
+
+Expected edges
+
+3
+
+Actual edges
+
+2
+
+Not complete.
