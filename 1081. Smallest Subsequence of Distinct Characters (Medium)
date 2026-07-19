@@ -1,0 +1,294 @@
+1081. Smallest Subsequence of Distinct Characters (Medium)
+
+
+Hint
+
+Given a string s, return the of s that contains all the distinct characters of s exactly once.
+
+ 
+
+Example 1:
+
+Input: s = "bcabc"
+Output: "abc"
+
+Example 2:
+
+Input: s = "cbacdcbc"
+Output: "acdb"
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 1000
+    s consists of lowercase English letters
+
+
+
+Test Case:
+Input
+s =
+"bcabc"
+Output
+"abc"
+
+
+Answer:
+
+class Solution:
+    def smallestSubsequence(self, s: str) -> str:
+        last = {c: i for i, c in enumerate(s)}
+
+        stack = []
+        visited = set()
+
+        for i, c in enumerate(s):
+            if c in visited:
+                continue
+
+            while stack and stack[-1] > c and last[stack[-1]] > i:
+                visited.remove(stack.pop())
+
+            stack.append(c)
+            visited.add(c)
+
+        return "".join(stack)
+
+
+
+
+Time Complexity:
+Each character is:
+
+pushed once
+popped at most once
+
+So,
+
+Time: O(n)
+
+
+
+Explanation:
+We want a subsequence that:
+
+contains every distinct character exactly once.
+is lexicographically smallest.
+
+The greedy idea is:
+
+If the current character is smaller than the top of the stack and the top character appears again later, then remove the top character because we can place it later and obtain a smaller answer.
+
+Step 1: Record Last Occurrence
+
+For every character, store its last index.
+
+Example
+
+s = "cbacdcbc"
+
+Last occurrence
+
+c → 7
+b → 6
+a → 2
+d → 4
+
+This tells us whether we can safely remove a character.
+
+Step 2: Maintain a Stack
+
+Also keep a visited set.
+
+If a character is already in the stack,
+
+skip it
+
+because each character should appear only once.
+
+Step 3: Remove Larger Characters
+
+Suppose current character is c.
+
+While
+
+stack
+
+is not empty and
+
+stack[-1] > c
+
+and the top character appears again later,
+
+last[stack[-1]] > current_index
+
+we pop it.
+
+Why?
+
+Because we can add it later, and placing the smaller character now gives a lexicographically smaller answer.
+
+Example
+s = "bcabc"
+
+Last occurrence
+
+b → 3
+c → 4
+a → 2
+Read 'b'
+
+Stack
+
+b
+Read 'c'
+c > b
+
+Push
+
+b c
+Read 'a'
+
+Current
+
+a
+
+Top
+
+c
+
+Since
+
+c > a
+
+and
+
+last(c)=4 > 2
+
+pop c.
+
+Stack
+
+b
+
+Again
+
+b>a
+
+and
+
+last(b)=3>2
+
+pop b.
+
+Stack
+
+(empty)
+
+Push
+
+a
+Read 'b'
+
+Push
+
+a b
+Read 'c'
+
+Push
+
+a b c
+
+Answer
+
+abc
+More Interesting Example
+cbacdcbc
+
+Process
+
+c
+
+Stack
+
+c
+
+Read
+
+b
+
+Since
+
+c>b
+
+and
+
+c appears later
+
+Pop
+
+c
+
+Push
+
+b
+
+Read
+
+a
+
+Pop
+
+b
+
+because
+
+b>a
+
+and b appears later.
+
+Push
+
+a
+
+Continue...
+
+Eventually
+
+acdb
+
+which is the smallest valid subsequence.
+
+Why do we need visited?
+
+Without it,
+
+abcabc
+
+would become
+
+abcabc
+
+instead of
+
+abc
+
+The visited set ensures every character is included only once.
+
+Algorithm
+
+For every character:
+
+If already visited → skip.
+While
+stack not empty
+top > current
+top appears later
+pop the top.
+Push current character.
+Mark it visited.
+
+Finally,
+
+"".join(stack)
