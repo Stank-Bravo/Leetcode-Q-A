@@ -1,0 +1,215 @@
+3499. Maximize Active Section with Trade I (Medium)
+
+
+
+
+Hint
+
+You are given a binary string s of length n, where:
+
+    '1' represents an active section.
+    '0' represents an inactive section.
+
+You can perform at most one trade to maximize the number of active sections in s. In a trade, you:
+
+    Convert a contiguous block of '1's that is surrounded by '0's to all '0's.
+    Afterward, convert a contiguous block of '0's that is surrounded by '1's to all '1's.
+
+Return the maximum number of active sections in s after making the optimal trade.
+
+Note: Treat s as if it is augmented with a '1' at both ends, forming t = '1' + s + '1'. The augmented '1's do not contribute to the final count.
+
+ 
+
+Example 1:
+
+Input: s = "01"
+
+Output: 1
+
+Explanation:
+
+Because there is no block of '1's surrounded by '0's, no valid trade is possible. The maximum number of active sections is 1.
+
+Example 2:
+
+Input: s = "0100"
+
+Output: 4
+
+Explanation:
+
+    String "0100" → Augmented to "101001".
+    Choose "0100", convert "101001" → "100001" → "111111".
+    The final string without augmentation is "1111". The maximum number of active sections is 4.
+
+Example 3:
+
+Input: s = "1000100"
+
+Output: 7
+
+Explanation:
+
+    String "1000100" → Augmented to "110001001".
+    Choose "000100", convert "110001001" → "110000001" → "111111111".
+    The final string without augmentation is "1111111". The maximum number of active sections is 7.
+
+Example 4:
+
+Input: s = "01010"
+
+Output: 4
+
+Explanation:
+
+    String "01010" → Augmented to "1010101".
+    Choose "010", convert "1010101" → "1000101" → "1111101".
+    The final string without augmentation is "11110". The maximum number of active sections is 4.
+
+ 
+
+Constraints:
+
+    1 <= n == s.length <= 10^5
+    s[i] is either '0' or '1'
+
+
+
+
+Test Case:
+Input
+s =
+"01"
+Output
+1
+
+
+Input
+s =
+"0100"
+Output
+4
+
+
+
+Answer:
+from typing import List
+
+class Solution:
+    def maxActiveSections(self, s: str) -> int:
+        ones = s.count('1')
+        t = '1' + s + '1'
+
+        # Run-length encoding
+        runs = []
+        i = 0
+        while i < len(t):
+            j = i
+            while j < len(t) and t[j] == t[i]:
+                j += 1
+            runs.append((t[i], j - i))
+            i = j
+
+        ans = ones
+
+        # Internal 1-blocks
+        for i in range(1, len(runs) - 1):
+            if (
+                runs[i][0] == '1'
+                and runs[i - 1][0] == '0'
+                and runs[i + 1][0] == '0'
+            ):
+                gain = runs[i - 1][1] + runs[i + 1][1]
+                ans = max(ans, ones + gain)
+
+        return ans
+
+
+
+Time Complexity: O(n)
+
+
+
+Explanation:
+Suppose we have an internal block of 1s (i.e., surrounded by 0s):
+
+... 000 111 00 ...
+      ^^^
+
+Let
+
+left zero block length = L
+one block length = M
+right zero block length = R
+
+The trade does:
+
+Convert the 111 block to 000.
+The three zero blocks merge into one block of length L + M + R.
+Convert this merged zero block into all 1s.
+
+Initially, we lose M active sections.
+
+Then we gain L + M + R active sections.
+
+So the net increase is
+
+(L + M + R) - M = L + R
+
+Notice that the size of the removed 1 block doesn't matter—only the lengths of the adjacent zero blocks.
+
+Algorithm
+Count the initial number of '1's in s.
+
+Augment the string:
+
+t = "1" + s + "1"
+Run-length encode t.
+
+For every 1-block that has a 0-block on both sides, compute
+
+gain = leftZeroLength + rightZeroLength
+
+Answer is
+
+initialOnes + maximumGain
+
+If no such internal 1 block exists, no valid trade is possible, so return the initial number of 1s.
+
+Example
+
+Input:
+
+s = "01010"
+
+Augmented:
+
+1010101
+
+Runs:
+
+Character	Length
+1	1
+0	1
+1	1
+0	1
+1	1
+0	1
+1	1
+
+The middle 1 blocks are candidates.
+
+For either one:
+
+gain = 1 + 1 = 2
+
+Initial active sections:
+
+2
+
+Final answer:
+
+2 + 2 = 4
+
+
