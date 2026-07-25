@@ -1,0 +1,167 @@
+3536. Maximum Product of Two Digits (Easy)
+
+
+
+
+Hint
+
+You are given a positive integer n.
+
+Return the maximum product of any two digits in n.
+
+Note: You may use the same digit twice if it appears more than once in n.
+
+ 
+
+Example 1:
+
+Input: n = 31
+
+Output: 3
+
+Explanation:
+
+    The digits of n are [3, 1].
+    The possible products of any two digits are: 3 * 1 = 3.
+    The maximum product is 3.
+
+Example 2:
+
+Input: n = 22
+
+Output: 4
+
+Explanation:
+
+    The digits of n are [2, 2].
+    The possible products of any two digits are: 2 * 2 = 4.
+    The maximum product is 4.
+
+Example 3:
+
+Input: n = 124
+
+Output: 8
+
+Explanation:
+
+    The digits of n are [1, 2, 4].
+    The possible products of any two digits are: 1 * 2 = 2, 1 * 4 = 4, 2 * 4 = 8.
+    The maximum product is 8.
+
+ 
+
+Constraints:
+
+    10 <= n <= 10^9
+
+
+
+
+Test Case:
+Input
+n =
+31
+Output
+3
+
+Input
+n =
+22
+Output
+4
+
+
+
+
+
+
+Answer:
+class Solution:
+    def maxProduct(self, n: int) -> int:
+        digits = []
+
+        while n:
+            digits.append(n % 10)
+            n //= 10
+
+        ans = 0
+        m = len(digits)
+
+        for i in range(m):
+            for j in range(i + 1, m):
+                ans = max(ans, digits[i] * digits[j])
+
+        return ans
+
+
+
+
+
+Time Complexity:
+O(d²), where d is the number of digits. Since d ≤ 10, this is effectively O(1).
+
+
+
+
+Explanation:
+The goal is to find the maximum product of any two digits in the given integer n.
+
+Step 1: Extract all digits
+
+We repeatedly take the last digit using:
+
+n % 10
+
+and remove it from the number using:
+
+n //= 10
+
+For example, if:
+
+n = 124
+
+the extracted digits are:
+
+[4, 2, 1]
+Step 2: Check every pair of digits
+
+Since the number has at most 10 digits, we can simply compare every possible pair.
+
+for i in range(m):
+    for j in range(i + 1, m):
+        ans = max(ans, digits[i] * digits[j])
+
+For 124:
+
+Pair	Product
+1 × 2	2
+1 × 4	4
+2 × 4	8
+
+The maximum product is 8.
+
+Example Walkthrough
+
+Input:
+
+n = 9315
+
+Digits:
+
+[9, 3, 1, 5]
+
+Possible products:
+
+9 × 3 = 27
+9 × 1 = 9
+9 × 5 = 45
+3 × 1 = 3
+3 × 5 = 15
+1 × 5 = 5
+
+Maximum product:
+
+45
+
+So the answer is 45.
