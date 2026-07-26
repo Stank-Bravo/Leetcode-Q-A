@@ -1,0 +1,88 @@
+628. Maximum Product of Three Numbers
+
+Topics
+
+E Companies
+
+Easy
+
+Given an integer array nums, find three numbers whose product is maximum and return the maximum product.
+
+Example 1:
+
+Input: nums = [1,2,3]
+
+Output: 6
+
+Example 2:
+
+Input: nums = [1,2,3,4]
+
+Output: 24
+
+Example 3:
+
+Input: nums = [-1,-2,-3]
+
+Output: -6
+
+Constraints:
+
+3 <= nums.length <= 104
+
+-1000
+
+<= nums[i] <=
+
+1000
+
+
+Test Case:
+Input
+
+nums =
+
+[1,2,3]
+
+Output
+
+6
+
+
+
+Answer:
+from typing import List
+
+class Solution:
+    def maximumProduct(self, nums: List[int]) -> int:
+        nums.sort()
+
+        return max(
+            nums[-1] * nums[-2] * nums[-3],
+            nums[0] * nums[1] * nums[-1]
+        )
+
+
+
+Time Complexity: O( n logn)
+
+
+
+Explanation:
+There are only two possibilities for the maximum product of three numbers:
+The three largest numbers
+The two smallest (most negative) numbers and the largest positive number
+Why?
+If all numbers are positive, we simply pick the three largest.
+If there are negative numbers, multiplying two negative numbers gives a positive number. So, two very small (negative) numbers together with the largest positive number may produce a larger product.
+Therefore, the answer is:
+max(
+    largest1 * largest2 * largest3,
+    smallest1 * smallest2 * largest1
+)
+Algorithm
+Sort the array.
+Compute:
+product1 = nums[-1] * nums[-2] * nums[-3]
+product2 = nums[0] * nums[1] * nums[-1]
+Return the maximum of the two.
