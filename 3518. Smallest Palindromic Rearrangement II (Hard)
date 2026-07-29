@@ -1,0 +1,276 @@
+3518. Smallest Palindromic Rearrangement II (Hard)
+
+
+
+Hint
+
+You are given a string s and an integer k.
+
+Return the k-th palindromic of s. If there are fewer than k distinct palindromic permutations, return an empty string.
+
+Note: Different rearrangements that yield the same palindromic string are considered identical and are counted once.
+
+ 
+
+Example 1:
+
+Input: s = "abba", k = 2
+
+Output: "baab"
+
+Explanation:
+
+    The two distinct palindromic rearrangements of "abba" are "abba" and "baab".
+    Lexicographically, "abba" comes before "baab". Since k = 2, the output is "baab".
+
+Example 2:
+
+Input: s = "aa", k = 2
+
+Output: ""
+
+Explanation:
+
+    There is only one palindromic rearrangement: "aa".
+    The output is an empty string since k = 2 exceeds the number of possible rearrangements.
+
+Example 3:
+
+Input: s = "bacab", k = 1
+
+Output: "abcba"
+
+Explanation:
+
+    The two distinct palindromic rearrangements of "bacab" are "abcba" and "bacab".
+    Lexicographically, "abcba" comes before "bacab". Since k = 1, the output is "abcba".
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 104
+    s consists of lowercase English letters.
+    s is guaranteed to be palindromic.
+    1 <= k <= 10^6
+
+
+
+Test Case:
+Input
+s =
+"abba"
+k =
+2
+Output
+"baab"
+
+
+Answer:
+from collections import Counter
+from math import comb
+from typing import List
+
+class Solution:
+    def smallestPalindrome(self, s: str, k: int) -> str:
+        LIMIT = k
+
+        cnt = Counter(s)
+
+        half = {}
+        mid = ""
+        total = 0
+
+        for ch in sorted(cnt):
+            half[ch] = cnt[ch] // 2
+            total += half[ch]
+            if cnt[ch] & 1:
+                mid = ch
+
+        # Returns the number of distinct permutations of the remaining multiset,
+        # capped at LIMIT.
+        def count_perm(freq, rem):
+            ways = 1
+            left = rem
+            for ch in sorted(freq):
+                f = freq[ch]
+                if f:
+                    ways *= comb(left, f)
+                    if ways > LIMIT:
+                        return LIMIT + 1
+                    left -= f
+            return ways
+
+        if count_perm(half, total) < k:
+            return ""
+
+        left = []
+
+        while total:
+            for ch in sorted(half):
+                if half[ch] == 0:
+                    continue
+
+                half[ch] -= 1
+                ways = count_perm(half, total - 1)
+
+                if ways >= k:
+                    left.append(ch)
+                    total -= 1
+                    break
+                else:
+                    k -= ways
+                    half[ch] += 1
+
+        left = "".join(left)
+        return left + mid + left[::-1]
+
+
+
+Time Complexity:
+
+Let
+
+    n = len(s)
+
+The alphabet size is only 26.
+
+    Preprocessing: O(n)
+
+    Greedy construction:
+
+        n/2 positions
+
+        26 candidate letters each
+
+Overall:  O(26 · n) = O(n)
+
+
+
+Explanation:
+The key observation is that a palindrome is completely determined by its left half.
+
+If the frequency of each character is cnt[c], then the left half contains:
+
+2
+cnt[c]
+	​
+
+
+copies of each character.
+
+So the problem becomes:
+
+Find the k-th lexicographically smallest permutation of the multiset forming the left half.
+
+Once the left half is built, the palindrome is:
+
+left + middle + reverse(left)
+
+where middle is the character with odd frequency (if any).
+
+Counting permutations
+
+Suppose the remaining half has
+
+L characters
+
+with frequencies
+
+f1,f2,...,f26
+
+The number of distinct permutations is
+
+f
+1
+	​
+
+!f
+2
+	​
+
+!⋯f
+26
+	​
+
+!
+L!
+	​
+
+
+This tells us how many palindromes start with a chosen prefix.
+
+Greedy Construction
+
+We build the left half one character at a time.
+
+At every position:
+
+Try characters from 'a' to 'z'.
+
+Suppose we place 'c'.
+
+Decrease its frequency by one and compute
+
+ways=
+∏f
+i
+	​
+
+!
+(L−1)!
+	​
+
+If ways >= k, then 'c' is the correct next character.
+Otherwise,
+skip all those permutations
+k -= ways
+restore the frequency
+try the next character.
+
+Repeat until the left half is complete.
+
+Computing permutations efficiently
+
+Since
+
+n ≤ 10000
+
+we cannot recompute factorials every time.
+
+Precompute
+
+fact[i] = i!
+
+only up to
+
+10^6
+
+because
+
+k ≤ 10^6
+
+Whenever a value exceeds 10^6, clamp it to
+
+10^6 + 1
+
+We only need to know whether the number of permutations is at least k.
+
+This avoids huge integers and keeps computations fast.
+
+Algorithm
+Count character frequencies.
+
+Build half frequencies.
+
+Precompute factorials (capped at 10^6+1).
+
+Count total permutations.
+
+If < k, return "".
+
+Greedily build the left half.
+
+Append middle character.
+
+Append reversed left half.
