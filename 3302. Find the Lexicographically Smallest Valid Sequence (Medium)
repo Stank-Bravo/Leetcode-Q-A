@@ -1,0 +1,221 @@
+3302. Find the Lexicographically Smallest Valid Sequence (Medium)
+
+
+
+
+Hint
+
+You are given two strings word1 and word2.
+
+A string x is called almost equal to y if you can change at most one character in x to make it identical to y.
+
+A sequence of indices seq is called valid if:
+
+    The indices are sorted in ascending order.
+    Concatenating the characters at these indices in word1 in the same order results in a string that is almost equal to word2.
+
+Return an array of size word2.length representing the valid sequence of indices. If no such sequence of indices exists, return an empty array.
+
+Note that the answer must represent the lexicographically smallest array, not the corresponding string formed by those indices.
+
+ 
+
+Example 1:
+
+Input: word1 = "vbcca", word2 = "abc"
+
+Output: [0,1,2]
+
+Explanation:
+
+The lexicographically smallest valid sequence of indices is [0, 1, 2]:
+
+    Change word1[0] to 'a'.
+    word1[1] is already 'b'.
+    word1[2] is already 'c'.
+
+Example 2:
+
+Input: word1 = "bacdc", word2 = "abc"
+
+Output: [1,2,4]
+
+Explanation:
+
+The lexicographically smallest valid sequence of indices is [1, 2, 4]:
+
+    word1[1] is already 'a'.
+    Change word1[2] to 'b'.
+    word1[4] is already 'c'.
+
+Example 3:
+
+Input: word1 = "aaaaaa", word2 = "aaabc"
+
+Output: []
+
+Explanation:
+
+There is no valid sequence of indices.
+
+Example 4:
+
+Input: word1 = "abc", word2 = "ab"
+
+Output: [0,1]
+
+ 
+
+Constraints:
+
+    1 <= word2.length < word1.length <= 3 * 10^5
+    word1 and word2 consist only of lowercase English letters.
+
+
+
+
+
+Test Case:
+Input
+word1 =
+"vbcca"
+word2 =
+"abc"
+Output
+[0,1,2]
+
+
+
+Input
+word1 =
+"bacdc"
+word2 =
+"abc"
+Output
+[1,2,4]
+
+
+Answer:
+from typing import List
+from typing import List
+
+class Solution:
+    def validSequence(self, word1: str, word2: str) -> List[int]:
+        n = len(word1)
+        m = len(word2)
+
+        # last[j] = position in word1 used to match word2[j]
+        # when matching word2[j:] from right to left.
+        last = [-1] * m
+
+        i = n - 1
+        j = m - 1
+
+        while i >= 0 and j >= 0:
+            if word1[i] == word2[j]:
+                last[j] = i
+                j -= 1
+            i -= 1
+
+        ans = []
+        canChange = True
+        j = 0
+
+        for i in range(n):
+            if j == m:
+                break
+
+            # Exact match
+            if word1[i] == word2[j]:
+                ans.append(i)
+                j += 1
+
+            # Use our one allowed mismatch
+            elif canChange:
+                # We need to make sure the remaining word2
+                # can still be matched after index i.
+                if j == m - 1 or i < last[j + 1]:
+                    ans.append(i)
+                    j += 1
+                    canChange = False
+
+        if j == m:
+            return ans
+
+        return []
+
+
+
+Time Complexity: O(n + m)
+
+
+
+Explanation:
+
+We need to choose m = len(word2) indices from word1 such that:
+
+indices are increasing
+the selected characters differ from word2 in at most one position
+among all valid sequences, choose the lexicographically smallest indices
+
+The important part is choosing the smallest possible index at every position, while still leaving enough room to finish the sequence.
+
+1. Precompute the suffix information
+
+For every position i in word1, we want to know:
+
+What is the earliest position from i where we can match the remaining part of word2 exactly?
+
+We can build an array suf where:
+
+suf[i] = number of characters of word2 that can be matched exactly
+         using word1[i:]
+
+More conveniently, we can compute nxt[i]:
+
+nxt[i] = earliest index in word1 where word2[i:] can start matching
+
+An easier implementation uses a greedy suffix match and stores, for every position in word2, the latest/earliest useful position.
+
+2. Greedily choose indices
+
+At each position j in word2, try indices starting from the smallest possible index.
+
+For a candidate i:
+
+Case 1: Characters are equal
+word1[i] == word2[j]
+
+We don't use our one allowed mismatch.
+
+We must make sure the rest of word2 can be matched exactly after i.
+
+Case 2: Characters differ
+
+We can use our one mismatch here.
+
+Then the remaining characters must match exactly.
+
+So we need to know whether:
+
+word2[j+1:] 
+
+can be matched in `word1[i+1:].
+
+If yes, i is the lexicographically smallest possible choice.
+
+Efficiently checking the suffix
+
+We cannot scan the suffix for every candidate because that would be O(n²).
+
+Instead, precompute:
+
+pref[j]
+
+The earliest/latest information for matching word2[:j].
+
+suf[j]
+
+Whether word2[j:] can be matched starting from a given position.
+
+A particularly clean solution uses Z-function / KMP-style matching to determine where exact matches are possible.
