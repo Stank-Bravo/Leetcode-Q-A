@@ -1,0 +1,193 @@
+1140. Stone Game II (Medium)
+
+
+
+
+Hint
+
+Alice and Bob continue their games with piles of stones. There are a number of piles arranged in a row, and each pile has a positive integer number of stones piles[i]. The objective of the game is to end with the most stones.
+
+Alice and Bob take turns, with Alice starting first.
+
+On each player's turn, that player can take all the stones in the first X remaining piles, where 1 <= X <= 2M. Then, we set M = max(M, X). Initially, M = 1.
+
+The game continues until all the stones have been taken.
+
+Assuming Alice and Bob play optimally, return the maximum number of stones Alice can get.
+
+ 
+
+Example 1:
+
+Input: piles = [2,7,9,4,4]
+
+Output: 10
+
+Explanation:
+
+    If Alice takes one pile at the beginning, Bob takes two piles, then Alice takes 2 piles again. Alice can get 2 + 4 + 4 = 10 stones in total.
+    If Alice takes two piles at the beginning, then Bob can take all three piles left. In this case, Alice get 2 + 7 = 9 stones in total.
+
+So we return 10 since it's larger.
+
+Example 2:
+
+Input: piles = [1,2,3,4,5,100]
+
+Output: 104
+
+ 
+
+Constraints:
+
+    1 <= piles.length <= 100
+    1 <= piles[i] <= 10^4
+
+
+
+
+Test Case:
+Input
+piles =
+[2,7,9,4,4]
+Output
+10
+
+
+
+
+
+Answer:
+from functools import lru_cache
+from typing import List
+
+class Solution:
+    def stoneGameII(self, piles: List[int]) -> int:
+        n = len(piles)
+
+        # Suffix sum:
+        # suffix[i] = total stones from i to n-1
+        suffix = [0] * (n + 1)
+
+        for i in range(n - 1, -1, -1):
+            suffix[i] = suffix[i + 1] + piles[i]
+
+        @lru_cache(None)
+        def dp(i, M):
+            # Current player can take everything remaining
+            if i + 2 * M >= n:
+                return suffix[i]
+
+            best = 0
+
+            # Try taking X piles
+            for X in range(1, 2 * M + 1):
+                opponent = dp(i + X, max(M, X))
+
+                current = suffix[i] - opponent
+
+                best = max(best, current)
+
+            return best
+
+        return dp(0, 1)
+
+
+
+
+Time Complexity: O(n³)
+
+
+Explanation:
+
+
+The easiest way to think about it is:
+
+At every state, Alice wants to maximize the stones she gets, while Bob wants to minimize Alice's future stones.
+
+Key idea
+
+Let:
+
+dp(i, M)
+
+be the maximum number of stones the current player can collect starting from pile i, when the current M is M.
+
+If there are remaining piles:
+
+remaining = n - i
+
+and:
+
+2 * M >= remaining
+
+then the current player can take all remaining piles.
+
+Otherwise, try every possible X:
+
+1 <= X <= 2 * M
+
+If we take X piles:
+
+taken = prefix[i + X] - prefix[i]
+
+Then the opponent gets to play from:
+
+dp(i + X, max(M, X))
+
+So the current player's total is:
+
+taken + (remaining stones - opponent's best)
+
+A convenient way to write this is using the total remaining stones:
+
+dp(i, M) = remaining_sum - min(dp(i + X, max(M, X)))
+
+because whatever the opponent can guarantee for themselves is what we lose.
+
+
+
+For:
+
+piles = [2,7,9,4,4]
+
+Initially:
+
+i = 0
+M = 1
+
+Alice can take:
+
+X = 1
+
+or
+
+X = 2
+
+The DP evaluates both possibilities and assumes Bob subsequently makes the choice that minimizes Alice's eventual score.
+
+The optimal result is:
+
+10
+Why suffix[i] - opponent?
+
+Suppose the remaining piles contain:
+
+50
+
+total stones.
+
+If Bob can get:
+
+30
+
+from the remaining game, Alice can get:
+
+50 - 30 = 20
+
+So instead of explicitly calculating Alice's and Bob's scores separately, we let dp() represent:
+
+How many stones the current player can guarantee from this state.
+
+That makes the minimax logic much simpler.
+
