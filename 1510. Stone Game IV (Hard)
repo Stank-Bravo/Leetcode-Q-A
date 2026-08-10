@@ -1,0 +1,159 @@
+1510. Stone Game IV (Hard)
+
+
+
+
+Hint
+
+Alice and Bob take turns playing a game, with Alice starting first.
+
+Initially, there are n stones in a pile. On each player's turn, that player makes a move consisting of removing any non-zero square number of stones in the pile.
+
+Also, if a player cannot make a move, he/she loses the game.
+
+Given a positive integer n, return true if and only if Alice wins the game otherwise return false, assuming both players play optimally.
+
+ 
+
+Example 1:
+
+Input: n = 1
+Output: true
+Explanation: Alice can remove 1 stone winning the game because Bob doesn't have any moves.
+
+Example 2:
+
+Input: n = 2
+Output: false
+Explanation: Alice can only remove 1 stone, after that Bob removes the last one winning the game (2 -> 1 -> 0).
+
+Example 3:
+
+Input: n = 4
+Output: true
+Explanation: n is already a perfect square, Alice can win with one move, removing 4 stones (4 -> 0).
+
+ 
+
+Constraints:
+
+    1 <= n <= 10^5
+
+
+
+
+Test Case:
+Input
+n =
+1
+Output
+true
+
+
+
+
+Answer:
+class Solution:
+    def winnerSquareGame(self, n: int) -> bool:
+        dp = [False] * (n + 1)
+
+        for i in range(1, n + 1):
+            j = 1
+
+            while j * j <= i:
+                if not dp[i - j * j]:
+                    dp[i] = True
+                    break
+
+                j += 1
+
+        return dp[n]
+
+
+
+
+Time Complexity: O(n√n)
+
+
+
+Explanation:
+Key idea
+
+Let:
+
+dp[i]
+
+mean:
+
+True if the player whose turn it is with i stones can force a win.
+
+For every i, we can remove any perfect square:
+
+1, 4, 9, 16, ...
+
+If we remove j*j stones, the opponent gets:
+
+i - j*j
+
+If that resulting state is losing for the opponent, then the current player wins.
+
+So:
+
+dp[i] = True
+
+if there exists a square x² <= i such that:
+
+dp[i - x²] == False
+
+Otherwise:
+
+dp[i] = False
+Base case
+dp[0] = False
+
+With 0 stones, there are no moves, so the player whose turn it is loses.
+
+
+Example: n = 2
+dp[0] = False
+
+For 1:
+
+1 - 1 = 0
+dp[0] = False
+
+Therefore:
+
+dp[1] = True
+
+For 2:
+
+Only square we can remove is 1.
+
+2 - 1 = 1
+dp[1] = True
+
+There is no move to a losing state.
+
+Therefore:
+
+dp[2] = False
+
+So Alice loses.
+
+Example: n = 4
+
+For 4, we can remove 4:
+
+4 - 4 = 0
+
+and:
+
+dp[0] = False
+
+Therefore:
+
+dp[4] = True
+
+Alice wins immediately.
+
