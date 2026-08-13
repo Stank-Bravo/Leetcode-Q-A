@@ -1,0 +1,283 @@
+2213. Longest Substring of One Repeating Character (Medium)
+
+
+
+Hint
+
+You are given a 0-indexed string s. You are also given a 0-indexed string queryCharacters of length k and a 0-indexed array of integer indices queryIndices of length k, both of which are used to describe k queries.
+
+The ith query updates the character in s at index queryIndices[i] to the character queryCharacters[i].
+
+Return an array lengths of length k where lengths[i] is the length of the longest substring of s consisting of only one repeating character after the ith query is performed.
+
+ 
+
+Example 1:
+
+Input: s = "babacc", queryCharacters = "bcb", queryIndices = [1,3,3]
+Output: [3,3,4]
+Explanation: 
+- 1st query updates s = "bbbacc". The longest substring consisting of one repeating character is "bbb" with length 3.
+- 2nd query updates s = "bbbccc". 
+  The longest substring consisting of one repeating character can be "bbb" or "ccc" with length 3.
+- 3rd query updates s = "bbbbcc". The longest substring consisting of one repeating character is "bbbb" with length 4.
+Thus, we return [3,3,4].
+
+Example 2:
+
+Input: s = "abyzz", queryCharacters = "aa", queryIndices = [2,1]
+Output: [2,3]
+Explanation:
+- 1st query updates s = "abazz". The longest substring consisting of one repeating character is "zz" with length 2.
+- 2nd query updates s = "aaazz". The longest substring consisting of one repeating character is "aaa" with length 3.
+Thus, we return [2,3].
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 10^5
+    s consists of lowercase English letters.
+    k == queryCharacters.length == queryIndices.length
+    1 <= k <= 10^5
+    queryCharacters consists of lowercase English letters.
+    0 <= queryIndices[i] < s.length
+
+
+
+
+Test Case:
+Input
+s =
+"babacc"
+queryCharacters =
+"bcb"
+queryIndices =
+[1,3,3]
+Output
+[3,3,4]
+
+
+
+Answer:
+class Solution {
+
+    static class Node {
+        char leftChar;
+        char rightChar;
+
+        int prefix;
+        int suffix;
+        int best;
+        int len;
+
+        Node(char c) {
+            leftChar = c;
+            rightChar = c;
+            prefix = 1;
+            suffix = 1;
+            best = 1;
+            len = 1;
+        }
+
+
+
+Time Complexity:
+Building the tree:
+
+O(n)
+
+Each update:
+
+O(log n)
+
+For k queries:
+
+O(k log n)
+
+Therefore:
+
+ O(n + k log n)
+
+
+
+Explanation:
+This is a Segment Tree problem.
+
+We need to support two operations efficiently:
+
+Update one character in s.
+Find the longest substring containing only the same character.
+
+Since n, k <= 10^5, checking the whole string after every update would be O(nk), which is too slow.
+
+Segment Tree idea
+
+For every segment of the string, store:
+
+leftChar → first character
+rightChar → last character
+prefix → longest same-character prefix
+suffix → longest same-character suffix
+best → longest repeating-character substring inside this segment
+len → length of the segment
+
+When combining two segments:
+
+left segment | right segment
+
+The important case is when:
+
+left.rightChar == right.leftChar
+
+Then the suffix of the left segment and prefix of the right segment can be joined.
+
+For example:
+
+aaa | aab
+
+The combined prefix is aaaa and the best substring is also aaaa.
+
+Example
+
+For:
+
+s = "babacc"
+
+After the first update:
+
+index = 1
+character = b
+
+we get:
+
+bbbacc
+
+The segment tree's root has:
+
+best = 3
+
+After the second update:
+
+bbbccc
+
+the root has:
+
+best = 3
+
+After the third:
+
+bbbbcc
+
+the root has:
+
+best = 4
+
+Therefore:
+
+[3, 3, 4]
+        Node() {
+        }
+    }
+
+    private Node[] tree;
+    private char[] s;
+
+    private Node merge(Node a, Node b) {
+        if (a == null) return b;
+        if (b == null) return a;
+
+        Node res = new Node();
+
+        res.len = a.len + b.len;
+
+        res.leftChar = a.leftChar;
+        res.rightChar = b.rightChar;
+
+        // Prefix
+        res.prefix = a.prefix;
+
+        if (a.prefix == a.len && a.rightChar == b.leftChar) {
+            res.prefix = a.len + b.prefix;
+        }
+
+        // Suffix
+        res.suffix = b.suffix;
+
+        if (b.suffix == b.len && a.rightChar == b.leftChar) {
+            res.suffix = b.len + a.suffix;
+        }
+
+        // Best substring
+        res.best = Math.max(a.best, b.best);
+
+        if (a.rightChar == b.leftChar) {
+            res.best = Math.max(res.best, a.suffix + b.prefix);
+        }
+
+        return res;
+    }
+
+    private void build(int node, int l, int r) {
+        if (l == r) {
+            tree[node] = new Node(s[l]);
+            return;
+        }
+
+        int mid = (l + r) / 2;
+
+        build(node * 2, l, mid);
+        build(node * 2 + 1, mid + 1, r);
+
+        tree[node] = merge(tree[node * 2], tree[node * 2 + 1]);
+    }
+
+    private void update(int node, int l, int r, int index, char c) {
+        if (l == r) {
+            s[index] = c;
+            tree[node] = new Node(c);
+            return;
+        }
+
+        int mid = (l + r) / 2;
+
+        if (index <= mid) {
+            update(node * 2, l, mid, index, c);
+        } else {
+            update(node * 2 + 1, mid + 1, r, index, c);
+        }
+
+        tree[node] = merge(tree[node * 2], tree[node * 2 + 1]);
+    }
+
+    public int[] longestRepeating(
+            String s,
+            String queryCharacters,
+            int[] queryIndices) {
+
+        this.s = s.toCharArray();
+
+        int n = s.length();
+
+        tree = new Node[4 * n];
+
+        build(1, 0, n - 1);
+
+        int k = queryIndices.length;
+        int[] ans = new int[k];
+
+        for (int i = 0; i < k; i++) {
+            update(
+                1,
+                0,
+                n - 1,
+                queryIndices[i],
+                queryCharacters.charAt(i)
+            );
+
+            ans[i] = tree[1].best;
+        }
+
+        return ans;
+    }
+}
