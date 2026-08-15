@@ -20,7 +20,8 @@ The goal of this repository is to improve my:
 # 📌 Languages Used
 
 * Python 🐍
-
+* Java
+  
 (More languages may be added later.)
 
 ---
