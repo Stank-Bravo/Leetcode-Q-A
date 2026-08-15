@@ -1,0 +1,144 @@
+3702. Longest Subsequence With Non-Zero Bitwise XOR (Medium)
+
+
+
+
+Hint
+
+You are given an integer array nums.
+
+Return the length of the longest in nums whose bitwise XOR is non-zero. If no such subsequence exists, return 0.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3]
+
+Output: 2
+
+Explanation:
+
+One longest subsequence is [2, 3]. The bitwise XOR is computed as 2 XOR 3 = 1, which is non-zero.
+
+Example 2:
+
+Input: nums = [2,3,4]
+
+Output: 3
+
+Explanation:
+
+The longest subsequence is [2, 3, 4]. The bitwise XOR is computed as 2 XOR 3 XOR 4 = 5, which is non-zero.
+
+ 
+
+Constraints:
+
+    1 <= nums.length <= 10^5
+    0 <= nums[i] <= 10^9
+
+
+
+
+
+Test Case:
+Input
+nums =
+[1,2,3]
+Output
+2
+
+
+
+Answer:
+class Solution {
+    public int longestSubsequence(int[] nums) {
+        int n = nums.length;
+        int xor = 0;
+
+        for (int num : nums) {
+            xor ^= num;
+        }
+
+        // If XOR of all elements is non-zero,
+        // we can take the entire array.
+        if (xor != 0) {
+            return n;
+        }
+
+        // If XOR is zero, remove one non-zero element.
+        // The remaining XOR will be non-zero.
+        for (int num : nums) {
+            if (num != 0) {
+                return n - 1;
+            }
+        }
+
+        // All elements are zero, so every subsequence has XOR = 0.
+        return 0;
+    }
+}
+
+
+
+Time Complexity: O(n)
+
+
+
+Explanation:
+We want the longest subsequence whose XOR is non-zero.
+
+Case 1: XOR of the entire array is non-zero
+xor ^= num;
+
+If the final XOR is non-zero, simply take all n elements.
+
+Example:
+
+[2, 3, 4]
+
+
+2 XOR 3 XOR 4 = 5
+
+So the answer is:
+
+3
+Case 2: XOR of the entire array is zero
+
+Suppose:
+
+XOR(all elements) = 0
+
+If there is at least one non-zero element, remove that element.
+
+For example:
+
+[1, 2, 3]
+
+
+1 XOR 2 XOR 3 = 0
+
+Remove 1:
+
+2 XOR 3 = 1
+
+Now the XOR is non-zero.
+
+So we can take n - 1 elements.
+
+Case 3: Every element is zero
+
+Example:
+
+[0, 0, 0]
+
+Any subsequence will have:
+
+0 XOR 0 XOR 0 = 0
+
+Therefore, no valid subsequence exists.
+
+Answer:
+
+0
