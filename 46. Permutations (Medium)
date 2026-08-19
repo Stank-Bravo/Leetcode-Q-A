@@ -1,0 +1,216 @@
+46. Permutations (Medium)
+
+
+
+
+Given an array nums of distinct integers, return all the possible . You can return the answer in any order.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,3]
+Output: [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+
+Example 2:
+
+Input: nums = [0,1]
+Output: [[0,1],[1,0]]
+
+Example 3:
+
+Input: nums = [1]
+Output: [[1]]
+
+ 
+
+Constraints:
+
+    1 <= nums.length <= 6
+    -10 <= nums[i] <= 10
+    All the integers of nums are unique.
+
+
+
+Test Case:
+Input
+nums =
+[1,2,3]
+Output
+[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+
+
+
+Answer:
+class Solution {
+
+    public List<List<Integer>> permute(int[] nums) {
+
+        // Final answer store karne ke liye
+        List<List<Integer>> ans = new ArrayList<>();
+
+        // Current permutation banane ke liye
+        List<Integer> current = new ArrayList<>();
+
+        // Har number use hua hai ya nahi track karne ke liye
+        boolean[] used = new boolean[nums.length];
+
+        // Backtracking start karo
+        backtrack(nums, used, current, ans);
+
+        return ans;
+    }
+
+    private void backtrack(
+        int[] nums,
+        boolean[] used,
+        List<Integer> current,
+        List<List<Integer>> ans
+    ) {
+
+        // Agar current permutation ki length nums ke equal hai
+        // Matlab ek complete permutation ban gayi
+        if (current.size() == nums.length) {
+
+            // current ki copy answer mein add karni hai
+            // Direct current add nahi karenge kyunki current baad mein change hoga
+            ans.add(new ArrayList<>(current));
+
+            return;
+        }
+
+        // Har number ko try karo
+        for (int i = 0; i < nums.length; i++) {
+
+            // Agar ye number already use ho chuka hai
+            // toh ise dobara current permutation mein nahi lenge
+            if (used[i]) {
+                continue;
+            }
+
+            // Number ko use mark karo
+            used[i] = true;
+
+            // Current permutation mein number add karo
+            current.add(nums[i]);
+
+            // Ab next position ke liye recursively try karo
+            backtrack(nums, used, current, ans);
+
+            // -------- BACKTRACKING --------
+
+            // Jo number add kiya tha use remove karo
+            current.remove(current.size() - 1);
+
+            // Number ko unused mark karo
+            // Taaki kisi aur permutation mein use kar sakein
+            used[i] = false;
+        }
+    }
+}
+
+
+
+
+Time Complexity:O(n × n!)
+
+
+
+Explanation:
+Is problem mein humein array ke saare possible permutations generate karne hain.
+
+Example:
+
+[1,2,3]
+
+Possible permutations:
+
+[1,2,3]
+[1,3,2]
+[2,1,3]
+[2,3,1]
+[3,1,2]
+[3,2,1]
+
+🧠 Basic idea
+
+Hum Backtracking use karenge.
+
+Har position par:
+
+Ek unused number choose karo.
+Us number ko current permutation mein add karo.
+Recursively next position fill karo.
+Jab permutation complete ho jaaye → answer mein add karo.
+Number ko wapas unused mark karo (backtrack).
+
+Dry Run for [1,2,3]
+
+Starting:
+
+current = []
+
+Pehle 1 choose:
+
+[1]
+
+Ab 2:
+
+[1,2]
+
+Ab 3:
+
+[1,2,3]  ← complete
+
+Answer mein add.
+
+Ab backtrack:
+
+[1,2]
+
+3 ko un-use karo.
+
+Phir 2 remove:
+
+[1]
+
+Ab 3 choose:
+
+[1,3]
+
+Phir 2:
+
+[1,3,2]  ← complete
+
+Isi tarah 2 aur 3 se start karke baaki permutations generate hongi.
+
+5
+⭐ Important concept: current.remove()
+
+Ye line:
+
+current.remove(current.size() - 1);
+
+Backtracking ka main part hai.
+
+Suppose:
+
+current = [1, 2, 3]
+
+Permutation complete hone ke baad 3 ko remove karna padega:
+
+current = [1, 2]
+
+Then 2 remove:
+
+current = [1]
+
+Ab hum 1 ke saath koi aur number try kar sakte hain.
+
+Basically:
+
+Choose
+   ↓
+Explore
+   ↓
+Undo ← Backtrack
