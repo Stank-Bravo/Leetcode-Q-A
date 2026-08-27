@@ -1,0 +1,229 @@
+3720. Lexicographically Smallest Permutation Greater Than Target (Medium)
+ 
+
+
+Hint
+
+You are given two strings s and target, both having length n, consisting of lowercase English letters.
+
+Return the lexicographically smallest of s that is strictly greater than target. If no permutation of s is lexicographically strictly greater than target, return an empty string.
+
+A string a is lexicographically strictly greater than a string b (of the same length) if in the first position where a and b differ, string a has a letter that appears later in the alphabet than the corresponding letter in b.
+
+ 
+
+Example 1:
+
+Input: s = "abc", target = "bba"
+
+Output: "bca"
+
+Explanation:
+
+    The permutations of s (in lexicographical order) are "abc", "acb", "bac", "bca", "cab", and "cba".
+    The lexicographically smallest permutation that is strictly greater than target is "bca".
+
+Example 2:
+
+Input: s = "leet", target = "code"
+
+Output: "eelt"
+
+Explanation:
+
+    The permutations of s (in lexicographical order) are "eelt", "eetl", "elet", "elte", "etel", "etle", "leet", "lete", "ltee", "teel", "tele", and "tlee".
+    The lexicographically smallest permutation that is strictly greater than target is "eelt".
+
+Example 3:
+
+Input: s = "baba", target = "bbaa"
+
+Output: ""
+
+Explanation:
+
+    The permutations of s (in lexicographical order) are "aabb", "abab", "abba", "baab", "baba", and "bbaa".
+    None of them is lexicographically strictly greater than target. Therefore, the answer is "".
+
+ 
+
+Constraints:
+
+    1 <= s.length == target.length <= 300
+    s and target consist of only lowercase English letters.
+
+
+
+Test Case:
+Input
+s =
+"abc"
+target =
+"bba"
+Output
+"bca"
+
+
+Answer:
+class Solution {
+    public String lexGreaterPermutation(String s, String target) {
+        int n = s.length();
+        int[] freq = new int[26];
+
+        for (char c : s.toCharArray()) {
+            freq[c - 'a']++;
+        }
+
+        char[] ans = new char[n];
+
+        // Try to keep the prefix equal to target.
+        for (int i = 0; i < n; i++) {
+
+            // First try to place the same character as target[i].
+            int same = target.charAt(i) - 'a';
+
+            if (freq[same] > 0) {
+                ans[i] = target.charAt(i);
+                freq[same]--;
+                continue;
+            }
+
+            // We cannot continue with an equal prefix.
+            // Find the smallest character greater than target[i].
+            for (int c = same + 1; c < 26; c++) {
+                if (freq[c] > 0) {
+                    ans[i] = (char) ('a' + c);
+                    freq[c]--;
+
+                    // Fill the rest with the smallest possible characters.
+                    int pos = i + 1;
+
+                    for (int x = 0; x < 26; x++) {
+                        while (freq[x] > 0) {
+                            ans[pos++] = (char) ('a' + x);
+                            freq[x]--;
+                        }
+                    }
+
+                    return new String(ans);
+                }
+            }
+
+            // No character >= target[i] can work at this position.
+            // We need to backtrack and make an earlier position bigger.
+            break;
+        }
+
+        /*
+         * The prefix was equal to target as far as possible.
+         * We now backtrack to find the rightmost position
+         * that can be increased.
+         */
+        freq = new int[26];
+
+        for (char c : s.toCharArray()) {
+            freq[c - 'a']++;
+        }
+
+        for (int i = 0; i < n; i++) {
+            int c = target.charAt(i) - 'a';
+
+            if (freq[c] == 0) {
+                // We cannot match target[i], so stop.
+                break;
+            }
+
+            freq[c]--;
+        }
+
+        // Rebuild from right to left.
+        for (int i = n - 1; i >= 0; i--) {
+            int current = target.charAt(i) - 'a';
+
+            // Return the character at target[i] back to the pool.
+            freq[current]++;
+
+            // Find the smallest available character > target[i].
+            for (int c = current + 1; c < 26; c++) {
+                if (freq[c] > 0) {
+                    StringBuilder result = new StringBuilder();
+
+                    // Prefix remains equal to target.
+                    result.append(target, 0, i);
+
+                    // Make this position slightly bigger.
+                    result.append((char) ('a' + c));
+                    freq[c]--;
+
+                    // Fill remaining positions with smallest characters.
+                    for (int x = 0; x < 26; x++) {
+                        while (freq[x] > 0) {
+                            result.append((char) ('a' + x));
+                            freq[x]--;
+                        }
+                    }
+
+                    return result.toString();
+                }
+            }
+
+            // Restore for the next backtracking position.
+            // (The current target character is already in freq.)
+        }
+
+        return "";
+    }
+}
+
+
+Complexity: O(n × 26) time and O(n) space.
+
+
+
+Explanation:
+Approach
+
+We need the smallest permutation of s that is strictly greater than target.
+
+The key idea is similar to finding the next permutation, but target itself may not be a permutation of s.
+
+Count how many times each character occurs in s.
+Try to match target from left to right.
+As long as we can use the exact character from target, keep matching.
+At some position i, if we cannot match target[i], we need to:
+go back to some previous position,
+choose the smallest available character greater than target[i],
+then put all remaining characters in sorted order.
+This gives the lexicographically smallest answer.
+If we cannot make the string greater at any position, return "".
+
+For example:
+
+s = "abc"
+target = "bba"
+
+We try to follow bba:
+
+target: b b a
+
+From s = abc, we can use b:
+
+prefix = "b"
+remaining = a,c
+
+Next target character is b, but there is no b left.
+
+So we backtrack and try to make the previous position bigger than b.
+
+The smallest available character greater than b is c.
+
+Then put the remaining characters in sorted order:
+
+"b" + "c" + "a"
+= "bca"
+
+Therefore:
+
+"bca"
+
+is the answer.
