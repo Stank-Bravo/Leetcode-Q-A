@@ -68,113 +68,82 @@ Answer:
 class Solution {
     public String lexGreaterPermutation(String s, String target) {
         int n = s.length();
-        int[] freq = new int[26];
 
+        int[] count = new int[26];
+
+        // Count characters in s
         for (char c : s.toCharArray()) {
-            freq[c - 'a']++;
+            count[c - 'a']++;
         }
 
-        char[] ans = new char[n];
+        StringBuilder prefix = new StringBuilder();
 
-        // Try to keep the prefix equal to target.
-        for (int i = 0; i < n; i++) {
+        // Match target from left to right
+        int i = 0;
 
-            // First try to place the same character as target[i].
-            int same = target.charAt(i) - 'a';
+        while (i < n) {
+            int ch = target.charAt(i) - 'a';
 
-            if (freq[same] > 0) {
-                ans[i] = target.charAt(i);
-                freq[same]--;
-                continue;
-            }
-
-            // We cannot continue with an equal prefix.
-            // Find the smallest character greater than target[i].
-            for (int c = same + 1; c < 26; c++) {
-                if (freq[c] > 0) {
-                    ans[i] = (char) ('a' + c);
-                    freq[c]--;
-
-                    // Fill the rest with the smallest possible characters.
-                    int pos = i + 1;
-
-                    for (int x = 0; x < 26; x++) {
-                        while (freq[x] > 0) {
-                            ans[pos++] = (char) ('a' + x);
-                            freq[x]--;
-                        }
-                    }
-
-                    return new String(ans);
-                }
-            }
-
-            // No character >= target[i] can work at this position.
-            // We need to backtrack and make an earlier position bigger.
-            break;
-        }
-
-        /*
-         * The prefix was equal to target as far as possible.
-         * We now backtrack to find the rightmost position
-         * that can be increased.
-         */
-        freq = new int[26];
-
-        for (char c : s.toCharArray()) {
-            freq[c - 'a']++;
-        }
-
-        for (int i = 0; i < n; i++) {
-            int c = target.charAt(i) - 'a';
-
-            if (freq[c] == 0) {
-                // We cannot match target[i], so stop.
+            if (count[ch] == 0) {
                 break;
             }
 
-            freq[c]--;
+            count[ch]--;
+            prefix.append(target.charAt(i));
+            i++;
         }
 
-        // Rebuild from right to left.
-        for (int i = n - 1; i >= 0; i--) {
-            int current = target.charAt(i) - 'a';
+        /*
+         * We currently matched target[0 ... i-1].
+         *
+         * First try to make the string greater at position i.
+         * If that is impossible, backtrack to previous positions.
+         */
+        for (int pos = i; pos >= 0; pos--) {
 
-            // Return the character at target[i] back to the pool.
-            freq[current]++;
+            // If pos < i, restore the character that was
+            // previously matched at this position.
+            if (pos < i) {
+                int restored = target.charAt(pos) - 'a';
+                count[restored]++;
+                prefix.deleteCharAt(prefix.length() - 1);
+            }
 
-            // Find the smallest available character > target[i].
-            for (int c = current + 1; c < 26; c++) {
-                if (freq[c] > 0) {
-                    StringBuilder result = new StringBuilder();
+            // If pos == n, there is no position to increase.
+            if (pos == n) {
+                continue;
+            }
 
-                    // Prefix remains equal to target.
-                    result.append(target, 0, i);
+            int targetChar = target.charAt(pos) - 'a';
 
-                    // Make this position slightly bigger.
-                    result.append((char) ('a' + c));
-                    freq[c]--;
+            // Find the smallest available character
+            // greater than target[pos].
+            for (int c = targetChar + 1; c < 26; c++) {
 
-                    // Fill remaining positions with smallest characters.
+                if (count[c] > 0) {
+
+                    StringBuilder ans = new StringBuilder(prefix);
+
+                    // Put the larger character
+                    ans.append((char) ('a' + c));
+                    count[c]--;
+
+                    // Put all remaining characters in sorted order
                     for (int x = 0; x < 26; x++) {
-                        while (freq[x] > 0) {
-                            result.append((char) ('a' + x));
-                            freq[x]--;
+                        while (count[x] > 0) {
+                            ans.append((char) ('a' + x));
+                            count[x]--;
                         }
                     }
 
-                    return result.toString();
+                    return ans.toString();
                 }
             }
-
-            // Restore for the next backtracking position.
-            // (The current target character is already in freq.)
         }
 
         return "";
     }
 }
-
 
 Complexity: O(n × 26) time and O(n) space.
 
