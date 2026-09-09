@@ -1,0 +1,116 @@
+3871. Count Commas in Range II (Medium)
+
+
+
+
+Hint
+
+You are given an integer n.
+
+Return the total number of commas used when writing all integers from [1, n] (inclusive) in standard number formatting.
+
+In standard formatting:
+
+    A comma is inserted after every three digits from the right.
+    Numbers with fewer than 4 digits contain no commas.
+
+ 
+
+Example 1:
+
+Input: n = 1002
+
+Output: 3
+
+Explanation:
+
+The numbers "1,000", "1,001", and "1,002" each contain one comma, giving a total of 3.
+
+Example 2:
+
+Input: n = 998
+
+Output: 0
+
+Explanation:
+
+​​​​​​​All numbers from 1 to 998 have fewer than four digits. Therefore, no commas are used.
+
+ 
+
+Constraints:
+
+    1 <= n <= 10^15
+
+
+
+
+
+Answer:
+class Solution {
+    public long countCommas(long n) {
+        long ans = 0;
+        long power = 1000;
+
+        while (power <= n) {
+            ans += n - power + 1;
+
+            if (power > n / 1000) {
+                break;
+            }
+
+            power *= 1000;
+        }
+
+        return ans;
+    }
+}
+
+
+
+
+Complexity: 
+O(log₁₀ n) time
+O(1) space.
+
+Explanation:
+Since n can be as large as 10^15, we cannot loop through every number.
+
+We can count commas based on digit ranges.
+
+For every number:
+
+1–999 → 0 commas
+1000–999999 → 1 comma
+1000000–999999999 → 2 commas
+1000000000–999999999999 → 3 commas
+etc.
+
+For each comma position, count how many numbers have a comma at that position.
+
+
+But there's a better way to think about it.
+
+For example, n = 1,002,005:
+
+Numbers 1000 → 1,002,005 have at least 1 comma
+Numbers 1,000,000 → 1,002,005 have 2 commas
+
+So:
+
+1-comma contribution = 1,002,005 - 1,000 + 1
+                     = 1,001,006
+
+2-comma contribution = 1,002,005 - 1,000,000 + 1
+                     = 2,006
+
+Total = 1,003,012
+
+The formula used is:
+
+for each power = 1000, 1000000, 1000000000, ...
+
+numbers having at least that comma = n - power + 1
+Important
+
+Use long, not int, because n can be 10^15 and the answer can be much larger than 2^31 - 1.
