@@ -1,0 +1,248 @@
+3414. Maximum Score of Non-overlapping Intervals (Hard)
+
+
+
+
+You are given a 2D integer array intervals, where intervals[i] = [li, ri, weighti]. Interval i starts at position li and ends at ri, and has a weight of weighti. You can choose up to 4 non-overlapping intervals. The score of the chosen intervals is defined as the total sum of their weights.
+
+Return the lexicographically smallest array of at most 4 indices from intervals with maximum score, representing your choice of non-overlapping intervals.
+
+Two intervals are said to be non-overlapping if they do not share any points. In particular, intervals sharing a left or right boundary are considered overlapping.
+
+ 
+
+Example 1:
+
+Input: intervals = [[1,3,2],[4,5,2],[1,5,5],[6,9,3],[6,7,1],[8,9,1]]
+
+Output: [2,3]
+
+Explanation:
+
+You can choose the intervals with indices 2, and 3 with respective weights of 5, and 3.
+
+Example 2:
+
+Input: intervals = [[5,8,1],[6,7,7],[4,7,3],[9,10,6],[7,8,2],[11,14,3],[3,5,5]]
+
+Output: [1,3,5,6]
+
+Explanation:
+
+You can choose the intervals with indices 1, 3, 5, and 6 with respective weights of 7, 6, 3, and 5.
+
+ 
+
+Constraints:
+
+    1 <= intevals.length <= 5 * 10^4
+    intervals[i].length == 3
+    intervals[i] = [li, ri, weighti]
+    1 <= li <= ri <= 10^9
+    1 <= weighti <= 10^9
+
+
+
+
+
+Answer:
+import java.util.*;
+
+class Solution {
+
+    static class Interval {
+        int l, r, w, index;
+
+        Interval(int l, int r, int w, int index) {
+            this.l = l;
+            this.r = r;
+            this.w = w;
+            this.index = index;
+        }
+    }
+
+    static class Result {
+        long score;
+        int[] indices;
+
+        Result(long score, int[] indices) {
+            this.score = score;
+            this.indices = indices;
+        }
+    }
+
+    private Interval[] arr;
+    private int n;
+    private int[] next;
+    private Result[][] memo;
+
+    public int[] maximumWeight(List<List<Integer>> intervals) {
+        n = intervals.size();
+        arr = new Interval[n];
+
+        for (int i = 0; i < n; i++) {
+            arr[i] = new Interval(
+                intervals.get(i).get(0),
+                intervals.get(i).get(1),
+                intervals.get(i).get(2),
+                i
+            );
+        }
+
+        Arrays.sort(arr, (a, b) -> {
+            if (a.l != b.l) {
+                return Integer.compare(a.l, b.l);
+            }
+            return Integer.compare(a.r, b.r);
+        });
+
+        next = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            next[i] = findNext(i);
+        }
+
+        memo = new Result[n + 1][5];
+
+        Result answer = solve(0, 0);
+
+        // The answer must be sorted by original indices
+        Arrays.sort(answer.indices);
+
+        return answer.indices;
+    }
+
+    private int findNext(int i) {
+        int low = i + 1;
+        int high = n;
+        int target = arr[i].r;
+
+        // Strictly greater than r because sharing boundaries overlaps
+        while (low < high) {
+            int mid = low + (high - low) / 2;
+
+            if (arr[mid].l > target) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        return low;
+    }
+
+    private Result solve(int i, int count) {
+        if (i >= n || count == 4) {
+            return new Result(0, new int[0]);
+        }
+
+        if (memo[i][count] != null) {
+            return memo[i][count];
+        }
+
+        // Option 1: skip current interval
+        Result skip = solve(i + 1, count);
+
+        // Option 2: take current interval
+        Result nextResult = solve(next[i], count + 1);
+
+        int[] selected = new int[nextResult.indices.length + 1];
+        selected[0] = arr[i].index;
+
+        System.arraycopy(
+            nextResult.indices,
+            0,
+            selected,
+            1,
+            nextResult.indices.length
+        );
+
+        Result take = new Result(
+            arr[i].w + nextResult.score,
+            selected
+        );
+
+        memo[i][count] = better(take, skip);
+        return memo[i][count];
+    }
+
+    private Result better(Result a, Result b) {
+        if (a.score != b.score) {
+            return a.score > b.score ? a : b;
+        }
+
+        int[] first = a.indices.clone();
+        int[] second = b.indices.clone();
+
+        Arrays.sort(first);
+        Arrays.sort(second);
+
+        int len = Math.min(first.length, second.length);
+
+        for (int i = 0; i < len; i++) {
+            if (first[i] != second[i]) {
+                return first[i] < second[i]
+                    ? new Result(a.score, first)
+                    : new Result(b.score, second);
+            }
+        }
+
+        return first.length <= second.length
+            ? new Result(a.score, first)
+            : new Result(b.score, second);
+    }
+}
+
+
+Complexity
+
+Sorting: O(n log n)
+
+Finding next intervals: O(n log n)
+
+DP states: O(4n)
+
+Each state compares at most 4 indices.
+
+Overall:
+
+Time:  O(n log n)
+Space: O(n)
+
+
+
+
+
+Approach: Weighted Interval Scheduling + DP
+
+We can choose at most 4 intervals.
+
+Two intervals are non-overlapping when:
+
+previous right < current left
+
+Because sharing a boundary means overlapping.
+
+Steps
+
+Sort intervals by their starting position.
+
+For every interval, use binary search to find the next interval whose start is greater than the current interval's end.
+
+Use DP:
+
+dp[i][count] = best result starting from index i, having selected count intervals.
+
+At each interval, either:
+
+Skip it.
+
+Take it and jump to the next non-overlapping interval.
+
+Compare results by:
+
+Higher total weight first.
+
+If weights are equal, lexicographically smaller index list.
+
+Since we select at most 4 intervals, the DP has manageable states.
