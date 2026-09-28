@@ -1,0 +1,115 @@
+1614. Maximum Nesting Depth of the Parentheses (Easy)
+
+
+Given a valid parentheses string s, return the nesting depth of s. The nesting depth is the maximum number of nested parentheses.
+
+ 
+
+Example 1:
+
+Input: s = "(1+(2*3)+((8)/4))+1"
+
+Output: 3
+
+Explanation:
+
+Digit 8 is inside of 3 nested parentheses in the string.
+
+Example 2:
+
+Input: s = "(1)+((2))+(((3)))"
+
+Output: 3
+
+Explanation:
+
+Digit 3 is inside of 3 nested parentheses in the string.
+
+Example 3:
+
+Input: s = "()(())((()()))"
+
+Output: 3
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 100
+    s consists of digits 0-9 and characters '+', '-', '*', '/', '(', and ')'.
+    It is guaranteed that parentheses expression s is a VPS.
+
+
+
+
+
+Answer: 
+class Solution {
+    public int maxDepth(String s) {
+
+        int depth = 0;
+        int maxDepth = 0;
+
+        for (char ch : s.toCharArray()) {
+
+            if (ch == '(') {
+                // Entering one more level
+                depth++;
+
+                // Update maximum depth
+                maxDepth = Math.max(maxDepth, depth);
+
+            } else if (ch == ')') {
+                // Leaving one level
+                depth--;
+            }
+        }
+
+        return maxDepth;
+    }
+}
+
+
+Approach
+
+We can solve this with a simple counter.
+
+When we see '(', we enter one more level of nesting, so increment depth.
+When we see ')', we leave one level, so decrement depth.
+Keep track of the maximum value reached by depth.
+
+For example:
+
+(1+(2*3)+((8)/4))+1
+
+When we reach 8, the current depth is 3, so the answer is 3.
+
+
+Dry Run
+
+For:
+
+s = "(1)+((2))+(((3)))"
+
+The depth changes like this:
+
+(        → 1
+)        → 0
+
+((       → 2
+))       → 0
+
+(((      → 3
+)))      → 0
+
+Maximum depth reached = 3.
+
+Why this works
+
+At any point in the string, depth represents the number of currently open parentheses.
+
+Therefore, the maximum value of depth is exactly the maximum nesting depth.
+
+Complexity
+Time: O(n) — we traverse the string once.
+Space: O(1) — only two integer variables are used
