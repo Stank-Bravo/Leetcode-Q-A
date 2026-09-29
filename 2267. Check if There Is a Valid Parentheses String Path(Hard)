@@ -1,0 +1,235 @@
+2267. Check if There Is a Valid Parentheses String Path(Hard)
+
+
+
+A parentheses string is a non-empty string consisting only of '(' and ')'. It is valid if any of the following conditions is true:
+
+    It is ().
+    It can be written as AB (A concatenated with B), where A and B are valid parentheses strings.
+    It can be written as (A), where A is a valid parentheses string.
+
+You are given an m x n matrix of parentheses grid. A valid parentheses string path in the grid is a path satisfying all of the following conditions:
+
+    The path starts from the upper left cell (0, 0).
+    The path ends at the bottom-right cell (m - 1, n - 1).
+    The path only ever moves down or right.
+    The resulting parentheses string formed by the path is valid.
+
+Return true if there exists a valid parentheses string path in the grid. Otherwise, return false.
+
+ 
+
+Example 1:
+
+Input: grid = [["(","(","("],[")","(",")"],["(","(",")"],["(","(",")"]]
+Output: true
+Explanation: The above diagram shows two possible paths that form valid parentheses strings.
+The first path shown results in the valid parentheses string "()(())".
+The second path shown results in the valid parentheses string "((()))".
+Note that there may be other valid parentheses string paths.
+
+Example 2:
+
+Input: grid = [[")",")"],["(","("]]
+Output: false
+Explanation: The two possible paths form the parentheses strings "))(" and ")((". Since neither of them are valid parentheses strings, we return false.
+
+ 
+
+Constraints:
+
+    m == grid.length
+    n == grid[i].length
+    1 <= m, n <= 100
+    grid[i][j] is either '(' or ')'.
+
+
+
+
+Answer:
+
+class Solution {
+    public boolean hasValidPath(char[][] grid) {
+
+        int m = grid.length;
+        int n = grid[0].length;
+
+        int length = m + n - 1;
+
+        // A valid parentheses string must have even length
+        if (length % 2 != 0) {
+            return false;
+        }
+
+        // First character must be '('
+        if (grid[0][0] == ')') {
+            return false;
+        }
+
+        // Last character must be ')'
+        if (grid[m - 1][n - 1] == '(') {
+            return false;
+        }
+
+        /*
+         * dp[i][j][balance]
+         *
+         * true means there exists a path from (0,0)
+         * to (i,j) with the given balance.
+         */
+        boolean[][][] dp = new boolean[m][n][length + 1];
+
+        // Starting cell is '('
+        dp[0][0][1] = true;
+
+        for (int i = 0; i < m; i++) {
+
+            for (int j = 0; j < n; j++) {
+
+                // Skip starting cell
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+
+                int change = (grid[i][j] == '(') ? 1 : -1;
+
+                for (int balance = 0; balance <= length; balance++) {
+
+                    int previousBalance = balance - change;
+
+                    if (previousBalance < 0 || previousBalance > length) {
+                        continue;
+                    }
+
+                    // We can come from above
+                    if (i > 0 && dp[i - 1][j][previousBalance]) {
+                        dp[i][j][balance] = true;
+                    }
+
+                    // Or we can come from the left
+                    if (j > 0 && dp[i][j - 1][previousBalance]) {
+                        dp[i][j][balance] = true;
+                    }
+                }
+            }
+        }
+
+        // A valid parentheses string must finish with balance 0
+        return dp[m - 1][n - 1][0];
+    }
+}
+
+
+Approach
+
+We need to find a path from (0,0) to (m-1,n-1) such that the parentheses formed along the path are valid.
+
+The important observation is that while traversing the path, we only need to know the current balance:
+
+'(' → balance + 1
+')' → balance - 1
+
+For a valid parentheses string:
+
+The balance can never become negative.
+At the end, the balance must be exactly 0.
+
+So we can use DP.
+
+DP State
+
+Let:
+
+dp[j][balance]
+
+mean:
+
+After reaching the current cell in column j, is there a path that has the given balance?
+
+From every cell, we can arrive from:
+
+the cell above
+the cell to the left
+
+We keep all possible balances for those paths.
+
+Important Optimization
+
+A path from (0,0) to (m-1,n-1) always contains:
+
+m + n - 1
+
+characters.
+
+A valid parentheses string must have an even length.
+
+So if:
+
+(m + n - 1) % 2 != 0
+
+we can immediately return false.
+
+Also:
+
+The first character must be '('.
+The last character must be ')'.
+
+Dry Run Idea
+
+Suppose the path produces:
+
+(())
+
+Balances are:
+
+(  → 1
+(  → 2
+)  → 1
+)  → 0
+
+Since:
+
+balance never < 0
+
+and finally:
+
+balance == 0
+
+the path is valid.
+
+But for:
+
+())(
+
+we get:
+
+(  → 1
+)  → 0
+)  → -1   ❌
+
+Once the balance becomes negative, that path can never produce a valid parentheses string, so we discard it.
+
+Why DP is Needed
+
+There can be exponentially many paths because at each step we can move either right or down.
+
+We cannot check every path separately.
+
+Instead, many paths reach the same cell with the same balance. We merge all those possibilities into one DP state:
+
+(cell, balance)
+
+This avoids repeatedly exploring the same state.
+
+Complexity
+
+There are approximately:
+
+m × n × (m + n)
+
+possible states.
+
+Time: O(m × n × (m + n))
+Space: O(n × (m + n))
+
+The space is optimized to use only the current/previous rows through the 1D column representation.
