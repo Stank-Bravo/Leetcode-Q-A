@@ -1,0 +1,163 @@
+22. Generate Parentheses (Medium)
+
+
+Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.
+
+ 
+
+Example 1:
+
+Input: n = 3
+Output: ["((()))","(()())","(())()","()(())","()()()"]
+
+Example 2:
+
+Input: n = 1
+Output: ["()"]
+
+ 
+
+Constraints:
+
+    1 <= n <= 8
+
+Answer
+import java.util.*;
+
+class Solution {
+    public List<String> generateParenthesis(int n) {
+
+        List<String> result = new ArrayList<>();
+
+        backtrack("", 0, 0, n, result);
+
+        return result;
+    }
+
+    private void backtrack(String current, int open, int close,
+                            int n, List<String> result) {
+
+        // We have used all n pairs
+        if (open == n && close == n) {
+            result.add(current);
+            return;
+        }
+
+        // We can add '(' if we still have opening brackets available
+        if (open < n) {
+            backtrack(
+                current + "(",
+                open + 1,
+                close,
+                n,
+                result
+            );
+        }
+
+        // We can add ')' only when there is an unmatched '('
+        if (close < open) {
+            backtrack(
+                current + ")",
+                open,
+                close + 1,
+                n,
+                result
+            );
+        }
+    }
+}
+
+
+
+Approach: Backtracking
+
+We need to generate all valid combinations of n pairs of parentheses.
+
+While building the string, we keep track of:
+
+open → number of '(' used
+close → number of ')' used
+
+We have two rules:
+
+We can add '(' if:
+
+open < n
+
+We can add ')' only if:
+
+close < open
+
+This prevents the number of closing parentheses from becoming greater than the number of opening parentheses at any point.
+
+When:
+
+open == n && close == n
+
+we have a complete valid combination.
+
+Dry Run for n = 3
+
+The recursion starts with:
+
+""
+
+We can only place '(':
+
+(
+
+Then:
+
+((
+(((
+
+At this point, all opening brackets are used, so we can only close:
+
+((()))
+
+Backtracking explores the other possibilities too:
+
+((()))
+(()())
+(())()
+()(())
+()()()
+
+These are all the valid combinations.
+
+Why close < open?
+
+Suppose we have:
+
+"(()"
+
+Here:
+
+open = 2
+close = 1
+
+We can safely add another ).
+
+But if we have:
+
+"())"
+
+then:
+
+open = 1
+close = 2
+
+This can never become a valid parentheses string, so we never create such a state.
+
+Complexity
+
+There are Catalan(n) valid combinations, where:
+
+Catalan(n) = (1 / (n + 1)) * C(2n, n)
+
+Each generated string has length 2n.
+
+Time: O(Catalan(n) × n)
+Space: O(Catalan(n) × n) for the result, plus O(n) recursion stack.
+
+For n <= 8, this is easily manageable.
