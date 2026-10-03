@@ -1,0 +1,155 @@
+32. Longest Valid Parentheses (Hard)
+
+
+
+Given a string containing just the characters '(' and ')', return the length of the longest valid (well-formed) parentheses substring.
+
+ 
+
+Example 1:
+
+Input: s = "(()"
+Output: 2
+Explanation: The longest valid parentheses substring is "()".
+
+Example 2:
+
+Input: s = ")()())"
+Output: 4
+Explanation: The longest valid parentheses substring is "()()".
+
+Example 3:
+
+Input: s = ""
+Output: 0
+
+ 
+
+Constraints:
+
+    0 <= s.length <= 3 * 10^4
+    s[i] is '(', or ')'.
+
+
+Answer:
+
+
+import java.util.*;
+
+class Solution {
+    public int longestValidParentheses(String s) {
+
+        Stack<Integer> stack = new Stack<>();
+
+        // Boundary before the string starts
+        stack.push(-1);
+
+        int maxLength = 0;
+
+        for (int i = 0; i < s.length(); i++) {
+
+            if (s.charAt(i) == '(') {
+
+                // Store index of opening bracket
+                stack.push(i);
+
+            } else {
+
+                // Match the closing bracket with an opening bracket
+                stack.pop();
+
+                if (stack.isEmpty()) {
+
+                    // No valid opening bracket available.
+                    // Current index becomes the new boundary.
+                    stack.push(i);
+
+                } else {
+
+                    // Length of current valid substring
+                    int length = i - stack.peek();
+
+                    maxLength = Math.max(maxLength, length);
+                }
+            }
+        }
+
+        return maxLength;
+    }
+}
+
+
+Approach: Stack
+We need to find the longest contiguous substring that forms valid parentheses.
+We'll use a stack to store indices.
+Initially, put -1 into the stack. This acts as a boundary before the beginning of the string.
+For every character:
+- If it is '(', push its index.
+- If it is ')', pop the top.
+  - If the stack becomes empty, push the current index as the new boundary.
+  - Otherwise, the current valid substring length is:i - stack.peek()
+Keep track of the maximum length.
+
+
+Dry Run
+For:
+s = ")()())"
+
+Indices:
+0 1 2 3 4 5
+) ( ) ( ) )
+
+Initially:
+stack = [-1]
+
+At index 0:
+')' → pop
+stack becomes empty
+push 0
+
+So 0 becomes a new invalid boundary.
+At index 1:
+'(' → push 1
+
+At index 2:
+')' → pop 1
+length = 2 - 0 = 2
+
+We found:
+()
+
+At index 3:
+'(' → push 3
+
+At index 4:
+')' → pop 3
+length = 4 - 0 = 4
+
+We found:
+()()
+
+At index 5:
+')' → pop
+stack becomes empty
+push 5
+
+Maximum length was:
+4
+
+Why i - stack.peek()?
+The stack's top represents the index just before the current valid substring begins.
+For example:
+) ( ) ( )
+0 1 2 3 4
+    ↑
+
+After matching the parentheses at indices 1 and 2, the boundary is index 0.
+So:
+2 - 0 = 2
+
+For the complete "()()":
+4 - 0 = 4
+
+Complexity
+- Time: O(n) — every index is pushed and popped at most once.
+- Space: O(n) — the stack can contain up to n indices.
