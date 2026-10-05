@@ -1,0 +1,164 @@
+856. Score of Parentheses (Medium)
+
+
+
+Given a balanced parentheses string s, return the score of the string.
+
+The score of a balanced parentheses string is based on the following rule:
+
+    "()" has score 1.
+    AB has score A + B, where A and B are balanced parentheses strings.
+    (A) has score 2 * A, where A is a balanced parentheses string.
+
+ 
+
+Example 1:
+
+Input: s = "()"
+Output: 1
+
+Example 2:
+
+Input: s = "(())"
+Output: 2
+
+Example 3:
+
+Input: s = "()()"
+Output: 2
+
+ 
+
+Constraints:
+
+    2 <= s.length <= 50
+    s consists of only '(' and ')'.
+    s is a balanced parentheses string.
+
+
+
+
+Answer:
+import java.util.*;
+
+class Solution {
+    public int scoreOfParentheses(String s) {
+
+        Stack<Integer> stack = new Stack<>();
+
+        // Score outside all parentheses
+        stack.push(0);
+
+        for (char ch : s.toCharArray()) {
+
+            if (ch == '(') {
+
+                // Enter a new level
+                stack.push(0);
+
+            } else {
+
+                // Get score inside current parentheses
+                int innerScore = stack.pop();
+
+                int currentScore;
+
+                if (innerScore == 0) {
+                    // "()" has score 1
+                    currentScore = 1;
+                } else {
+                    // "(A)" has score 2 * A
+                    currentScore = 2 * innerScore;
+                }
+
+                // Add current score to the outer level
+                int outerScore = stack.pop();
+                stack.push(outerScore + currentScore);
+            }
+        }
+
+        return stack.peek();
+    }
+}
+
+
+Approach: Stack
+We can use a stack to keep track of the score at each level of parentheses.
+The rules are:
+- "()" → 1
+- (A) → 2 × A
+- AB → A + B
+We start with 0 on the stack to represent the score outside all parentheses.
+Logic
+For every character:
+- If we see '(', push 0 because we're entering a new level.
+- If we see ')':
+  - Pop the score inside the current pair.
+  - If the score is 0, it means we had "()", so its score is 1.
+  - Otherwise, its score is 2 × innerScore.
+  - Add this score to the previous level.
+
+
+Dry Run
+For:
+s = "(())"
+
+Initially:
+stack = [0]
+
+First '(':
+stack = [0, 0]
+
+Second '(':
+stack = [0, 0, 0]
+
+First ')':
+innerScore = 0
+
+So this represents:
+()
+
+Score = 1.
+stack = [0, 1]
+
+Second ')':
+innerScore = 1
+
+So:
+(1) = 2 × 1 = 2
+
+Final:
+stack = [2]
+
+Answer:
+2
+
+Another Example
+For:
+"()()"
+
+Each "()" has score 1:
+1 + 1 = 2
+
+So the answer is 2.
+Why this works
+The stack separates different nesting levels.
+For example:
+((()))
+
+The innermost:
+()
+
+gets 1.
+Then:
+(1) → 2
+
+Then:
+(2) → 4
+
+So:
+Score("((()))") = 4
+
+Complexity
+- Time: O(n) — we process each character once.
+- Space: O(n) — in the worst case, all characters can be opening parentheses.
