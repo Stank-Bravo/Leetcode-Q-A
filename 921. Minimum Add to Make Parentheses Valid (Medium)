@@ -1,0 +1,134 @@
+921. Minimum Add to Make Parentheses Valid (Medium)
+
+
+
+A parentheses string is valid if and only if:
+
+    It is the empty string,
+    It can be written as AB (A concatenated with B), where A and B are valid strings, or
+    It can be written as (A), where A is a valid string.
+
+You are given a parentheses string s. In one move, you can insert a parenthesis at any position of the string.
+
+    For example, if s = "()))", you can insert an opening parenthesis to be "(()))" or a closing parenthesis to be "())))".
+
+Return the minimum number of moves required to make s valid.
+
+ 
+
+Example 1:
+
+Input: s = "())"
+Output: 1
+
+Example 2:
+
+Input: s = "((("
+Output: 3
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 1000
+    s[i] is either '(' or ')'.
+
+
+
+Answer:
+class Solution {
+    public int minAddToMakeValid(String s) {
+
+        int open = 0; // Unmatched '('
+        int add = 0;  // Parentheses we need to insert
+
+        for (char ch : s.toCharArray()) {
+
+            if (ch == '(') {
+
+                // We have one unmatched opening bracket
+                open++;
+
+            } else {
+
+                if (open > 0) {
+                    // Match ')' with an existing '('
+                    open--;
+                } else {
+                    // No '(' available, so we need to add one
+                    add++;
+                }
+            }
+        }
+
+        // Any remaining '(' need a ')' each
+        return add + open;
+    }
+}
+
+
+Approach: Greedy
+We can solve this using two counters:
+- open → number of unmatched '('
+- add → number of ')' we need to insert
+Traverse the string from left to right.
+When we see '('
+Increase open:
+open++
+
+This means we have one more opening parenthesis that needs a matching ')'.
+When we see ')'
+If there is an unmatched '(', we can match it:
+open--
+
+Otherwise, this ')' has no matching '(', so we need to insert an '(' before it:
+add++
+
+At the end, any remaining open parentheses need a closing ')'.
+Therefore:
+answer = add + open
+
+Dry Run
+For:
+s = "())"
+
+Start:
+open = 0
+add = 0
+
+First '(':
+open = 1
+
+First ')':
+open = 0
+
+Second ')':
+open == 0
+
+So we need to insert '(':
+add = 1
+
+At the end:
+answer = add + open
+       = 1 + 0
+       = 1
+
+Example 2
+s = "((("
+
+Each character is '(':
+open = 3
+add = 0
+
+There are 3 unmatched opening brackets, so we need 3 closing brackets:
+answer = 0 + 3 = 3
+
+Why Greedy Works
+Whenever we encounter ')':
+- If an unmatched '(' exists, matching them is always optimal.
+- If no '(' exists, we must insert an '('; there is no other way to make that ')' valid.
+After processing the entire string, every unmatched '(' requires exactly one ')'.
+Therefore, add + open is the minimum number of insertions.
+Complexity
+- Time: O(n) — one pass through the string.
+- Space: O(1) — only two counters are used.
