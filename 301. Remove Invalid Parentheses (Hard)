@@ -1,0 +1,203 @@
+301. Remove Invalid Parentheses (Hard)
+
+
+
+
+Given a string s that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.
+
+Return a list of unique strings that are valid with the minimum number of removals. You may return the answer in any order.
+
+ 
+
+Example 1:
+
+Input: s = "()())()"
+Output: ["(())()","()()()"]
+
+Example 2:
+
+Input: s = "(a)())()"
+Output: ["(a())()","(a)()()"]
+
+Example 3:
+
+Input: s = ")("
+Output: [""]
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 25
+    s consists of lowercase English letters and parentheses '(' and ')'.
+    There will be at most 20 parentheses in s.
+
+
+
+
+Answer:
+import java.util.*;
+
+class Solution {
+
+    public List<String> removeInvalidParentheses(String s) {
+
+        List<String> result = new ArrayList<>();
+
+        // BFS queue
+        Queue<String> queue = new LinkedList<>();
+
+        // Prevent duplicate strings
+        Set<String> visited = new HashSet<>();
+
+        queue.offer(s);
+        visited.add(s);
+
+        // Once we find valid strings at one level,
+        // we don't need to generate deeper levels.
+        boolean found = false;
+
+        while (!queue.isEmpty()) {
+
+            int size = queue.size();
+
+            for (int k = 0; k < size; k++) {
+
+                String current = queue.poll();
+
+                // Check whether current string is valid
+                if (isValid(current)) {
+                    result.add(current);
+                    found = true;
+                }
+
+                // If we already found valid strings,
+                // don't remove more parentheses.
+                if (found) {
+                    continue;
+                }
+
+                // Generate strings by removing one character
+                for (int i = 0; i < current.length(); i++) {
+
+                    // We only need to remove parentheses.
+                    if (current.charAt(i) != '(' &&
+                        current.charAt(i) != ')') {
+                        continue;
+                    }
+
+                    // Remove character at index i
+                    String next = current.substring(0, i)
+                                 + current.substring(i + 1);
+
+                    // Add only if we haven't seen it before
+                    if (visited.add(next)) {
+                        queue.offer(next);
+                    }
+                }
+            }
+
+            // If valid strings were found at this level,
+            // this is the minimum number of removals.
+            if (found) {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    // Checks whether the parentheses are valid
+    private boolean isValid(String s) {
+
+        int balance = 0;
+
+        for (char ch : s.toCharArray()) {
+
+            if (ch == '(') {
+                balance++;
+
+            } else if (ch == ')') {
+                balance--;
+
+                // More closing brackets than opening brackets
+                if (balance < 0) {
+                    return false;
+                }
+            }
+        }
+
+        // All opening brackets must be matched
+        return balance == 0;
+    }
+}
+
+
+Approach: BFS
+We need to remove the minimum number of parentheses and return all unique valid strings.
+The best approach is BFS (Breadth-First Search).
+Why BFS?
+- Level 0 → original string
+- Level 1 → remove exactly 1 parenthesis
+- Level 2 → remove exactly 2 parentheses
+- ...
+The first level containing a valid string is guaranteed to use the minimum number of removals.
+We also use a HashSet to avoid generating duplicate strings.
+Step 1: Check if a string is valid
+Traverse the string with a balance counter:
+- '(' → balance++
+- ')' → balance--
+- If balance < 0, the string is invalid.
+- At the end, balance must be 0.
+Letters don't affect the balance.
+
+
+
+Dry Run
+For:
+s = "()())()"
+
+BFS starts with:
+Level 0:
+()())()
+
+It's invalid.
+So we remove one parenthesis and generate strings at Level 1:
+(())()
+()()()
+()())(
+...
+
+We find:
+(())()
+()()()
+
+Both are valid.
+Since BFS found valid strings at level 1, we stop.
+Therefore the answer is:
+["(())()", "()()()"]
+
+Why BFS Guarantees Minimum Removals
+Suppose:
+Level 0 → remove 0 characters
+Level 1 → remove 1 character
+Level 2 → remove 2 characters
+
+BFS always completely processes one level before moving to the next.
+Therefore, if the first valid strings appear at Level k, they require exactly k removals, and no solution can require fewer than k.
+Why HashSet Is Important
+Consider:
+s = "(())"
+
+Removing either of the two '(' characters can potentially generate the same resulting string.
+Without visited, we could process the same string multiple times.
+if (visited.add(next)) {
+    queue.offer(next);
+}
+
+HashSet ensures every generated string is processed only once.
+Complexity
+Let n = s.length().
+In the worst case, we can generate many different strings by removing parentheses.
+- Time: O(2^n × n) in the worst case.
+- Space: O(2^n × n) for the generated strings and BFS queue.
