@@ -1,0 +1,147 @@
+1021. Remove Outermost Parentheses (Easy)
+
+
+
+A valid parentheses string is either empty "", "(" + A + ")", or A + B, where A and B are valid parentheses strings, and + represents string concatenation.
+
+    For example, "", "()", "(())()", and "(()(()))" are all valid parentheses strings.
+
+A valid parentheses string s is primitive if it is nonempty, and there does not exist a way to split it into s = A + B, with A and B nonempty valid parentheses strings.
+
+Given a valid parentheses string s, consider its primitive decomposition: s = P1 + P2 + ... + Pk, where Pi are primitive valid parentheses strings.
+
+Return s after removing the outermost parentheses of every primitive string in the primitive decomposition of s.
+
+ 
+
+Example 1:
+
+Input: s = "(()())(())"
+Output: "()()()"
+Explanation: 
+The input string is "(()())(())", with primitive decomposition "(()())" + "(())".
+After removing outer parentheses of each part, this is "()()" + "()" = "()()()".
+
+Example 2:
+
+Input: s = "(()())(())(()(()))"
+Output: "()()()()(())"
+Explanation: 
+The input string is "(()())(())(()(()))", with primitive decomposition "(()())" + "(())" + "(()(()))".
+After removing outer parentheses of each part, this is "()()" + "()" + "()(())" = "()()()()(())".
+
+Example 3:
+
+Input: s = "()()"
+Output: ""
+Explanation: 
+The input string is "()()", with primitive decomposition "()" + "()".
+After removing outer parentheses of each part, this is "" + "" = "".
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 10^5
+    s[i] is either '(' or ')'.
+    s is a valid parentheses string.
+
+
+
+
+Answer:
+class Solution {
+    public String removeOuterParentheses(String s) {
+
+        StringBuilder result = new StringBuilder();
+
+        int depth = 0;
+
+        for (char ch : s.toCharArray()) {
+
+            if (ch == '(') {
+
+                // If depth > 0, this is NOT the outermost '('
+                if (depth > 0) {
+                    result.append(ch);
+                }
+
+                depth++;
+
+            } else {
+
+                // First decrease depth
+                depth--;
+
+                // If depth > 0, this is NOT the outermost ')'
+                if (depth > 0) {
+                    result.append(ch);
+                }
+            }
+        }
+
+        return result.toString();
+    }
+}
+
+
+
+
+
+Approach
+We can solve this using a simple depth counter.
+For every primitive parentheses string:
+- The first '(' is the outermost opening bracket → don't add it.
+- The matching final ')' is the outermost closing bracket → don't add it.
+- All parentheses inside the primitive should be added.
+We can detect this using depth:
+- For '(':
+  - If depth > 0, it is an inner parenthesis, so add it.
+  - Then increase depth.
+- For ')':
+  - First decrease depth.
+  - If depth > 0, it is an inner parenthesis, so add it.
+
+
+Dry Run
+For:
+s = "(()())(())"
+
+Primitive decomposition:
+(()()) + (())
+
+For the first primitive:
+( ( ) ( ) )
+^         ^
+remove outer parentheses
+
+→ ()()
+
+For the second:
+( ( ) )
+^     ^
+remove outer parentheses
+
+→ ()
+
+Final result:
+()() + ()
+= "()()()"
+
+Why the Depth Logic Works
+Consider:
+(())
+
+Depth changes:
+'(' → depth 0 → don't add → depth = 1
+'(' → depth 1 → add      → depth = 2
+')' → depth 2 → decrease → depth = 1 → add
+')' → depth 1 → decrease → depth = 0 → don't add
+
+Result:
+()
+
+So only the outermost pair is removed.
+Complexity
+- Time: O(n) — we traverse the string once.
+- Space: O(n) — StringBuilder stores the resulting string.
