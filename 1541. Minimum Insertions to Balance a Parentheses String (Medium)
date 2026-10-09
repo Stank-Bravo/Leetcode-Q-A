@@ -1,0 +1,125 @@
+1541. Minimum Insertions to Balance a Parentheses String (Medium)
+
+
+
+Given a parentheses string s containing only the characters '(' and ')'. A parentheses string is balanced if:
+
+    Any left parenthesis '(' must have a corresponding two consecutive right parenthesis '))'.
+    Left parenthesis '(' must go before the corresponding two consecutive right parenthesis '))'.
+
+In other words, we treat '(' as an opening parenthesis and '))' as a closing parenthesis.
+
+    For example, "())", "())(())))" and "(())())))" are balanced, ")()", "()))" and "(()))" are not balanced.
+
+You can insert the characters '(' and ')' at any position of the string to balance it if needed.
+
+Return the minimum number of insertions needed to make s balanced.
+
+ 
+
+Example 1:
+
+Input: s = "(()))"
+Output: 1
+Explanation: The second '(' has two matching '))', but the first '(' has only ')' matching. We need to add one more ')' at the end of the string to be "(())))" which is balanced.
+
+Example 2:
+
+Input: s = "())"
+Output: 0
+Explanation: The string is already balanced.
+
+Example 3:
+
+Input: s = "))())("
+Output: 3
+Explanation: Add '(' to match the first '))', Add '))' to match the last '('.
+
+ 
+
+Constraints:
+
+    1 <= s.length <= 10^5
+    s consists of '(' and ')' only.
+
+
+
+
+Answer:
+class Solution {
+    public int minInsertions(String s) {
+        int open = 0;
+        int insertions = 0;
+        int i = 0;
+
+        while (i < s.length()) {
+            if (s.charAt(i) == '(') {
+                // Opening bracket ko match karne ke liye 2 ')' chahiye
+                open++;
+                i++;
+            } else {
+                // Check whether we have a consecutive '))' pair
+                if (i + 1 < s.length() && s.charAt(i + 1) == ')') {
+                    i += 2;
+                } else {
+                    // Only one ')' exists, so insert another ')'
+                    insertions++;
+                    i++;
+                }
+
+                // Match this closing pair with an opening bracket
+                if (open > 0) {
+                    open--;
+                } else {
+                    // No opening bracket available, insert '('
+                    insertions++;
+                }
+            }
+        }
+
+        // Each unmatched '(' requires two closing brackets
+        insertions += 2 * open;
+
+        return insertions;
+    }
+}
+
+
+Approach: Greedy
+In this problem, every '(' must be matched with two consecutive '))'.
+We maintain two variables:
+- open → number of opening parentheses waiting to be matched.
+- insertions → minimum number of parentheses we need to insert.
+We process the string from left to right.
+Case 1: Current character is '('
+A new opening parenthesis needs two closing parentheses, so increment open.
+Case 2: Current character is ')'
+We need to check whether the next character is also ')'.
+- If yes, we have a complete '))' pair.
+- If no, insert one ')' to complete the pair.
+Now, if there is an unmatched '(', use one to match this closing pair. Otherwise, insert an '(' and count one insertion.
+At the end, every remaining '(' needs two closing parentheses, so add 2 * open.
+
+
+
+Dry Run
+Input:
+s = "(()))"
+
+
+Character(s)	Action	open	insertions
+(	Add opening bracket	1	0
+(	Add opening bracket	2	0
+))	Match one opening bracket	1	0
+)	Insert another ) and match opening bracket	0	1
+Output:
+1
+
+
+We insert one closing parenthesis to obtain "(())))".
+Why Greedy Works
+Every closing pair '))' must match exactly one opening '('. If the second ')' is missing, inserting it immediately completes the pair. If no opening parenthesis is available, inserting '(' is necessary. Any unmatched opening parentheses remaining at the end each require two closing parentheses.
+Thus, we make only the insertions that are necessary.
+Complexity
+- Time: O(n) — each character is processed at most once.
+- Space: O(1) — only three variables are used./x
