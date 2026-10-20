@@ -1,0 +1,154 @@
+3886. Sum of Sortable Integers (Hard)
+
+
+
+
+Hint
+
+You are given an integer array nums of length n.
+
+An integer k is called sortable if k divides n and you can sort nums in non-decreasing order by sequentially performing the following operations:
+
+    Partition nums into consecutive subarrays of length k.
+    Cyclically rotate each subarray independently any number of times to the left or to the right.
+
+Return an integer denoting the sum of all possible sortable integers k.
+
+ 
+
+Example 1:
+
+Input: nums = [3,1,2]
+
+Output: 3
+
+Explanation:​​​​​​​
+
+    For n = 3, possible divisors are 1 and 3.
+    For k = 1: each subarray has one element. No rotation can sort the array.
+    For k = 3: the single subarray [3, 1, 2] can be rotated once to produce [1, 2, 3], which is sorted.
+    Only k = 3 is sortable. Hence, the answer is 3.
+
+Example 2:
+
+Input: nums = [7,6,5]
+
+Output: 0
+
+Explanation:
+
+    For n = 3, possible divisors are 1 and 3.
+    For k = 1: each subarray has one element. No rotation can sort the array.
+    For k = 3: the single subarray [7, 6, 5] cannot be rotated into non-decreasing order.
+    No k is sortable. Hence, the answer is 0.
+
+Example 3:
+
+Input: nums = [5,8]
+
+Output: 3
+
+Explanation:​​​​​​​
+
+    For n = 2, possible divisors are 1 and 2.
+    Since [5, 8] is already sorted, every divisor is sortable. Hence, the answer is 1 + 2 = 3.
+
+ 
+
+Constraints:
+
+    1 <= n == nums.length <= 10^5
+    1 <= nums[i] <= 10^5
+
+
+
+Answer:
+class Solution {
+    public int sortableIntegers(int[] nums) {
+        int n = nums.length;
+
+        int[] prefMax = new int[n + 1];
+        int[] suffMin = new int[n + 1];
+        int[] prefDrop = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            prefMax[i + 1] = Math.max(prefMax[i], nums[i]);
+        }
+
+        suffMin[n] = Integer.MAX_VALUE;
+        for (int i = n - 1; i >= 0; i--) {
+            suffMin[i] = Math.min(nums[i], suffMin[i + 1]);
+        }
+
+        for (int i = 1; i < n; i++) {
+            prefDrop[i] = prefDrop[i - 1]
+                    + (nums[i - 1] > nums[i] ? 1 : 0);
+        }
+
+        int answer = 0;
+
+        for (int k = 1; k <= n / k; k++) {
+            if (n % k == 0) {
+                if (check(nums, prefMax, suffMin, prefDrop, k)) {
+                    answer += k;
+                }
+
+                int other = n / k;
+                if (other != k &&
+                    check(nums, prefMax, suffMin, prefDrop, other)) {
+                    answer += other;
+                }
+            }
+        }
+
+        return answer;
+    }
+
+    private boolean check(int[] nums, int[] prefMax,
+                          int[] suffMin, int[] prefDrop, int k) {
+        int n = nums.length;
+
+        for (int start = 0; start < n; start += k) {
+            int end = start + k - 1;
+
+            // Count descents within this block, including circular wrap
+            int drops = prefDrop[end] - prefDrop[start];
+
+            if (nums[end] > nums[start]) {
+                drops++;
+            }
+
+            // Block must be cyclically sortable, and
+            // all earlier blocks must be <= all later blocks.
+            if (drops > 1 || prefMax[start] > suffMin[start]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+
+
+Approach
+
+1. Create a sorted copy of nums.
+2. Try every divisor k of n.
+3. Split both arrays into consecutive blocks of length k.
+4. For every block, check whether the original block can be rotated to match its corresponding sorted block.
+5. If all blocks match, add k to the answer.
+Dry Run
+Input: nums = [3, 1, 2]
+
+Sorted array: [1, 2, 3]
+- k = 1: blocks cannot change their values through rotation, so the array cannot be sorted.
+- k = 3: [3, 1, 2] can be rotated left to [1, 2, 3]. Therefore, k = 3 is sortable.
+Output: 3
+
+
+Complexity Analysis
+
+- Time Complexity: \(O(n^2)\) in the worst case for this straightforward implementation.
+- Space Complexity: \(O(n)\) for the sorted copy.
+Important: With \(n \leq 10^5\), this implementation may exceed the time limit. It is useful for understanding the condition, but an optimized solution is needed for the full constraints.
