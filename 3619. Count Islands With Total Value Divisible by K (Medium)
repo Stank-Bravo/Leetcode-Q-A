@@ -1,0 +1,126 @@
+3619. Count Islands With Total Value Divisible by K (Medium)
+
+
+
+Hint
+
+You are given an m x n matrix grid and a positive integer k. An island is a group of positive integers (representing land) that are 4-directionally connected (horizontally or vertically).
+
+The total value of an island is the sum of the values of all cells in the island.
+
+Return the number of islands with a total value divisible by k.
+
+ 
+
+Example 1:
+
+Input: grid = [[0,2,1,0,0],[0,5,0,0,5],[0,0,1,0,0],[0,1,4,7,0],[0,2,0,0,8]], k = 5
+
+Output: 2
+
+Explanation:
+
+The grid contains four islands. The islands highlighted in blue have a total value that is divisible by 5, while the islands highlighted in red do not.
+
+Example 2:
+
+Input: grid = [[3,0,3,0], [0,3,0,3], [3,0,3,0]], k = 3
+
+Output: 6
+
+Explanation:
+
+The grid contains six islands, each with a total value that is divisible by 3.
+
+ 
+
+Constraints:
+
+    m == grid.length
+    n == grid[i].length
+    1 <= m, n <= 1000
+    1 <= m * n <= 10^5
+    0 <= grid[i][j] <= 10^6
+    1 <= k <= 10^6
+
+
+
+
+Answer:
+
+class Solution {
+    public int countIslands(int[][] grid, int k) {
+        int m = grid.length;
+        int n = grid[0].length;
+        int count = 0;
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] > 0) {
+                    long sum = dfs(grid, i, j);
+
+                    if (sum % k == 0) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        return count;
+    }
+
+    private long dfs(int[][] grid, int r, int c) {
+        int m = grid.length;
+        int n = grid[0].length;
+
+        if (r < 0 || r >= m || c < 0 || c >= n
+                || grid[r][c] == 0) {
+            return 0;
+        }
+
+        // Save the cell value and mark it visited
+        long value = grid[r][c];
+        grid[r][c] = 0;
+
+        value += dfs(grid, r - 1, c);
+        value += dfs(grid, r + 1, c);
+        value += dfs(grid, r, c - 1);
+        value += dfs(grid, r, c + 1);
+
+        return value;
+    }
+}
+
+
+
+
+Approach
+
+An island consists of all 4-directionally connected positive cells. We use DFS to explore each island and calculate its total value.
+1. Traverse every cell in the grid.
+2. If a cell is positive, start DFS to explore its entire island.
+3. Add the values of all connected land cells.
+4. Mark visited cells as 0 so we don't count the same island again.
+5. If the island's total sum is divisible by k, increment the answer.
+We use long for the island sum because a large island's total can exceed the int range.
+Dry Run
+Input:
+
+grid = [[3,0,3,0], [0,3,0,3], [3,0,3,0]], k = 3
+
+Every positive cell is isolated because no two positive cells share a horizontal or vertical edge.
+- Number of islands: 6
+- Each island's sum: 3
+- \(3 \bmod 3 = 0\)
+
+Output: 6
+
+
+
+Complexity Analysis
+
+- Time Complexity: \(O(m \times n)\) — every cell is visited at most once.
+
+- Space Complexity: \(O(m \times n)\) worst case for the recursive DFS call stack.
+
+Note: For very large connected islands, recursive DFS can cause a StackOverflowError in Java. An iterative DFS using a stack is safer for the maximum constraints.
