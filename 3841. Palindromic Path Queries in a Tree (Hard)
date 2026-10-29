@@ -1,0 +1,281 @@
+3841. Palindromic Path Queries in a Tree (Hard)
+
+
+
+Hint
+
+You are given an undirected tree with n nodes labeled 0 to n - 1. This is represented by a 2D array edges of length n - 1, where edges[i] = [ui, vi] indicates an undirected edge between nodes ui and vi.
+
+You are also given a string s of length n consisting of lowercase English letters, where s[i] represents the character assigned to node i.
+
+You are also given a string array queries, where each queries[i] is either:
+
+    "update ui c": Change the character at node ui to c. Formally, update s[ui] = c.
+    "query ui vi": Determine whether the string formed by the characters on the unique path from ui to vi (inclusive) can be rearranged into a palindrome.
+
+Return a boolean array answer, where answer[j] is true if the jth query of type "query ui vi"​​​​​​​ can be rearranged into a palindrome, and false otherwise.
+
+ 
+
+Example 1:
+
+Input: n = 3, edges = [[0,1],[1,2]], s = "aac", queries = ["query 0 2","update 1 b","query 0 2"]
+
+Output: [true,false]
+
+Explanation:
+
+    "query 0 2": Path 0 → 1 → 2 gives "aac", which can be rearranged to form "aca", a palindrome. Thus, answer[0] = true.
+    "update 1 b": Update node 1 to 'b', now s = "abc".
+    "query 0 2": Path characters are "abc", which cannot be rearranged to form a palindrome. Thus, answer[1] = false.
+
+Thus, answer = [true, false].
+
+Example 2:
+
+Input: n = 4, edges = [[0,1],[0,2],[0,3]], s = "abca", queries = ["query 1 2","update 0 b","query 2 3","update 3 a","query 1 3"]
+
+Output: [false,false,true]
+
+Explanation:
+
+    "query 1 2": Path 1 → 0 → 2 gives "bac", which cannot be rearranged to form a palindrome. Thus, answer[0] = false.
+    "update 0 b": Update node 0 to 'b', now s = "bbca".
+    "query 2 3": Path 2 → 0 → 3 gives "cba", which cannot be rearranged to form a palindrome. Thus, answer[1] = false.
+    "update 3 a": Update node 3 to 'a', s = "bbca".
+    "query 1 3": Path 1 → 0 → 3 gives "bba", which can be rearranged to form "bab", a palindrome. Thus, answer[2] = true.
+
+Thus, answer = [false, false, true].
+
+ 
+
+Constraints:
+
+    1 <= n == s.length <= 5 * 10^4
+    edges.length == n - 1
+    edges[i] = [ui, vi]
+    0 <= ui, vi <= n - 1
+    s consists of lowercase English letters.
+    The input is generated such that edges represents a valid tree.
+    1 <= queries.length <= 5 * 10^4​​​​​​​
+        queries[i] = "update ui c" or
+        queries[i] = "query ui vi"
+        0 <= ui, vi <= n - 1
+        c is a lowercase English letter.
+
+
+
+Answer:
+import java.util.*;
+
+class Solution {
+    private int n;
+    private List<Integer>[] graph;
+    private int[] parent, depth, size, heavy, head, pos;
+    private int timer;
+    private int[] seg;
+
+    public List<Boolean> palindromePath(
+            int n, int[][] edges, String s, String[] queries) {
+
+        this.n = n;
+
+        graph = new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+
+        for (int[] edge : edges) {
+            graph[edge[0]].add(edge[1]);
+            graph[edge[1]].add(edge[0]);
+        }
+
+        parent = new int[n];
+        depth = new int[n];
+        size = new int[n];
+        heavy = new int[n];
+        head = new int[n];
+        pos = new int[n];
+
+        Arrays.fill(heavy, -1);
+
+        dfsSize(0, -1);
+
+        timer = 0;
+        decompose(0, 0);
+
+        seg = new int[4 * n];
+        int[] base = new int[n];
+
+        for (int u = 0; u < n; u++) {
+            base[pos[u]] = 1 << (s.charAt(u) - 'a');
+        }
+
+        build(1, 0, n - 1, base);
+
+        List<Boolean> result = new ArrayList<>();
+
+        for (String q : queries) {
+            String[] parts = q.split(" ");
+            int u = Integer.parseInt(parts[1]);
+
+            if (parts[0].equals("update")) {
+                int mask = 1 << (parts[2].charAt(0) - 'a');
+                update(1, 0, n - 1, pos[u], mask);
+            } else {
+                int v = Integer.parseInt(parts[2]);
+                int mask = queryPath(u, v);
+
+                result.add((mask & (mask - 1)) == 0);
+            }
+        }
+
+        return result;
+    }
+
+    private int dfsSize(int u, int p) {
+        parent[u] = p;
+        size[u] = 1;
+        int maxSize = 0;
+
+        for (int v : graph[u]) {
+            if (v == p) {
+                continue;
+            }
+
+            depth[v] = depth[u] + 1;
+
+            int childSize = dfsSize(v, u);
+            size[u] += childSize;
+
+            if (childSize > maxSize) {
+                maxSize = childSize;
+                heavy[u] = v;
+            }
+        }
+
+        return size[u];
+    }
+
+    private void decompose(int u, int h) {
+        head[u] = h;
+        pos[u] = timer++;
+
+        if (heavy[u] != -1) {
+            decompose(heavy[u], h);
+        }
+
+        for (int v : graph[u]) {
+            if (v == parent[u] || v == heavy[u]) {
+                continue;
+            }
+
+            decompose(v, v);
+        }
+    }
+
+    private void build(int node, int left, int right, int[] base) {
+        if (left == right) {
+            seg[node] = base[left];
+            return;
+        }
+
+        int mid = left + (right - left) / 2;
+
+        build(node * 2, left, mid, base);
+        build(node * 2 + 1, mid + 1, right, base);
+
+        seg[node] = seg[node * 2] ^ seg[node * 2 + 1];
+    }
+
+    private void update(
+            int node, int left, int right, int idx, int value) {
+
+        if (left == right) {
+            seg[node] = value;
+            return;
+        }
+
+        int mid = left + (right - left) / 2;
+
+        if (idx <= mid) {
+            update(node * 2, left, mid, idx, value);
+        } else {
+            update(node * 2 + 1, mid + 1, right, idx, value);
+        }
+
+        seg[node] = seg[node * 2] ^ seg[node * 2 + 1];
+    }
+
+    private int query(
+            int node, int left, int right, int ql, int qr) {
+
+        if (ql > right || qr < left) {
+            return 0;
+        }
+
+        if (ql <= left && right <= qr) {
+            return seg[node];
+        }
+
+        int mid = left + (right - left) / 2;
+
+        return query(node * 2, left, mid, ql, qr)
+                ^ query(node * 2 + 1, mid + 1, right, ql, qr);
+    }
+
+    private int queryPath(int u, int v) {
+        int mask = 0;
+
+        while (head[u] != head[v]) {
+            if (depth[head[u]] < depth[head[v]]) {
+                int temp = u;
+                u = v;
+                v = temp;
+            }
+
+            mask ^= query(
+                    1, 0, n - 1, pos[head[u]], pos[u]);
+
+            u = parent[head[u]];
+        }
+
+        if (depth[u] > depth[v]) {
+            int temp = u;
+            u = v;
+            v = temp;
+        }
+
+        mask ^= query(1, 0, n - 1, pos[u], pos[v]);
+
+        return mask;
+    }
+}
+
+
+
+
+
+
+
+How it works
+
+- Bitmask: 1 << (s.charAt(u) - 'a') represents the character at node u.
+- XOR: Combining masks with XOR tracks which characters occur an odd number of times along the path.
+- HLD: Breaks a tree path into \(O(\log n)\) segments.
+- Segment tree: Supports character updates and range XOR queries in \(O(\log n)\) time per segment.
+- Palindrome test: A bitmask is valid if it has at most one set bit: (mask & (mask - 1)) == 0.
+
+
+Complexity
+
+
+- Preprocessing: \(O(n\log n)\)
+
+- Each update: \(O(\log n)\)
+
+- Each path query: \(O(\log^2 n)\)
+
+- Space: \(O(n)\)
+
+This is efficient for up to \(5 \times 10^4\) nodes and queries.
