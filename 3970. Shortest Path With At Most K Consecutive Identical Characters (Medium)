@@ -1,0 +1,221 @@
+3970. Shortest Path With At Most K Consecutive Identical Characters (Medium)
+
+
+
+Hint
+
+You are given an integer n representing the number of nodes in a directed weighted graph, numbered from 0 to n - 1. This is represented by a 2D integer array edges, where edges[i] = [ui, vi, wi] represents a directed edge from node ui to node vi with weight wi.
+
+You are also given a string labels of length n, where labels[i] is the character assigned to node i, and an integer k.
+
+Return the minimum total edge weight of a path from node 0 to node n - 1 such that the concatenation of the labels of the nodes along the path contains at most k consecutive identical characters. If no valid path exists, return -1.
+
+ 
+
+Example 1:
+
+Input: n = 3, edges = [[0,1,1],[1,2,1],[0,2,3]], labels = "aab", k = 1
+
+Output: 3
+
+Explanation:
+
+The optimal valid path from node 0 to node 2 is as follows:
+
+    Use edges[2] = [0, 2, 3] to reach node 2 with a weight wi = 3.
+
+The corresponding concatenation of labels is "ab", which satisfies at most k = 1 consecutive identical characters. Thus, the answer is 3.
+
+Example 2:
+
+Input: n = 3, edges = [[0,1,1],[1,2,1],[0,2,3]], labels = "aab", k = 2
+
+Output: 2
+
+Explanation:
+
+The optimal valid path from node 0 to node 2 is as follows:
+
+    Use edges[0] = [0, 1, 1] to reach node 1 with weight wi = 1.
+    Use edges[1] = [1, 2, 1] to reach node 2 with weight wi = 1.
+
+The corresponding concatenation of labels is "aab", which satisfies at most k = 2 consecutive identical characters. Thus, the answer is 2.
+
+Example 3:
+
+Input: n = 3, edges = [[0,1,1],[1,2,1]], labels = "aaa", k = 2
+
+Output: -1
+
+Explanation:
+
+There is no valid path from node 0 to node 2 that satisfies at most k = 2 consecutive identical characters. Thus, the answer is -1.
+
+ 
+
+Constraints:
+
+    1 <= n == labels.length <= 5 * 10^4
+    0 <= edges.length <= 5 * 10^4
+    edges[i] == [ui, vi, wi]
+    0 <= ui, vi <= n - 1
+    ui != vi
+    1 <= wi <= 10^4
+    labels consists of lowercase English letters
+    1 <= k <= 50
+
+
+
+
+Answer:
+import java.util.*;
+
+class Solution {
+
+    class State {
+        int node;
+        int count;
+        long dist;
+
+        State(int node, int count, long dist) {
+            this.node = node;
+            this.count = count;
+            this.dist = dist;
+        }
+    }
+
+    public int shortestPath(int n, int[][] edges, String labels, int k) {
+
+        List<int[]>[] graph = new ArrayList[n];
+
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+
+        for (int[] edge : edges) {
+            graph[edge[0]].add(new int[]{edge[1], edge[2]});
+        }
+
+        long[][] dist = new long[n][k + 1];
+
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(dist[i], Long.MAX_VALUE);
+        }
+
+        PriorityQueue<State> pq = new PriorityQueue<>(
+            (a, b) -> Long.compare(a.dist, b.dist)
+        );
+
+        dist[0][1] = 0;
+        pq.offer(new State(0, 1, 0));
+
+        while (!pq.isEmpty()) {
+
+            State curr = pq.poll();
+
+            int u = curr.node;
+            int count = curr.count;
+            long cost = curr.dist;
+
+            if (cost != dist[u][count]) {
+                continue;
+            }
+
+            if (u == n - 1) {
+                return (int) cost;
+            }
+
+            for (int[] edge : graph[u]) {
+
+                int v = edge[0];
+                int weight = edge[1];
+
+                int nextCount;
+
+                if (labels.charAt(u) == labels.charAt(v)) {
+                    nextCount = count + 1;
+                } else {
+                    nextCount = 1;
+                }
+
+                if (nextCount > k) {
+                    continue;
+                }
+
+                long newCost = cost + weight;
+
+                if (newCost < dist[v][nextCount]) {
+                    dist[v][nextCount] = newCost;
+                    pq.offer(new State(v, nextCount, newCost));
+                }
+            }
+        }
+
+        return -1;
+    }
+}
+
+
+
+Approach: 
+
+Dijkstra + Expanded States
+Why do we need extra states?
+
+Suppose we reach node 2 with label 'a'.
+- State 1: We have seen one consecutive 'a'.
+- State 2: We have seen two consecutive 'a' characters.
+These states are different because the next node might also have label 'a'. The second state has less room before violating the constraint.
+
+Therefore, define:
+\[
+dist[node][count]
+\]
+
+where count represents the number of consecutive identical characters ending at the current node.
+
+
+
+Transitions:
+
+When moving from node u to node v:
+
+- If both labels are equal: nextCount = count + 1.
+- Otherwise: nextCount = 1.
+
+- If nextCount > k, reject that transition.
+
+- Otherwise, relax the distance using Dijkstra.
+
+We initialize dist[0][1] = 0 because the starting node itself contributes one character.
+
+Dry Run
+
+Input:
+n = 3
+edges = [[0,1,1], [1,2,1], [0,2,3]]
+labels = "aab"
+k = 1
+
+
+Possible paths:
+
+Path	Labels	Weight	Valid?
+0 → 1 → 2	aab	2	No
+0 → 2	ab	3	Yes
+
+
+Output: 3
+
+
+Complexity Analysis
+
+Let \(E\) be the number of edges.
+
+- Time Complexity: \(O((V+E)K\log(VK))\), using Dijkstra over at most \(V(K+1)\) states.
+
+- Space Complexity: \(O(VK+E)\).
+
+With \(n \leq 50,000\) and \(k \leq 50\), this expanded-state Dijkstra approach is suitable for the constraints.
+
+Important: The method signature above is shortestPath. If LeetCode reports a method-name mismatch, share the driver error and I'll adjust it to the exact expected signature.
