@@ -1,0 +1,161 @@
+3789. Minimum Cost to Acquire Required Items(Medium)
+
+
+
+You are given five integers cost1, cost2, costBoth, need1, and need2.
+
+There are three types of items available:
+
+    An item of type 1 costs cost1 and contributes 1 unit to the type 1 requirement only.
+    An item of type 2 costs cost2 and contributes 1 unit to the type 2 requirement only.
+    An item of type 3 costs costBoth and contributes 1 unit to both type 1 and type 2 requirements.
+
+You must collect enough items so that the total contribution toward type 1 is at least need1 and the total contribution toward type 2 is at least need2.
+
+Return an integer representing the minimum possible total cost to achieve these requirements.
+
+ 
+
+Example 1:
+
+Input: cost1 = 3, cost2 = 2, costBoth = 1, need1 = 3, need2 = 2
+
+Output: 3
+
+Explanation:
+
+After buying three type 3 items, which cost 3 * 1 = 3, the total contribution to type 1 is 3 (>= need1 = 3) and to type 2 is 3 (>= need2 = 2).
+Any other valid combination would cost more, so the minimum total cost is 3.
+
+Example 2:
+
+Input: cost1 = 5, cost2 = 4, costBoth = 15, need1 = 2, need2 = 3
+
+Output: 22
+
+Explanation:
+
+We buy need1 = 2 items of type 1 and need2 = 3 items of type 2: 2 * 5 + 3 * 4 = 10 + 12 = 22.
+Any other valid combination would cost more, so the minimum total cost is 22.
+
+Example 3:
+
+Input: cost1 = 5, cost2 = 4, costBoth = 15, need1 = 0, need2 = 0
+
+Output: 0
+
+Explanation:
+
+Since no items are required (need1 = need2 = 0), we buy nothing and pay 0.
+
+ 
+
+Constraints:
+
+    1 <= cost1, cost2, costBoth <= 10^6
+    0 <= need1, need2 <= 10^9
+
+
+
+
+Answer:
+
+
+class Solution {
+    public long minimumCost(int cost1, int cost2, int costBoth,
+                            int need1, int need2) {
+
+        long common = Math.min(need1, need2);
+
+        // Option 1: Buy everything individually
+        long option1 = (long) need1 * cost1
+                     + (long) need2 * cost2;
+
+        // Option 2: Buy common requirements together
+        // and remaining requirements individually
+        long option2 = common * costBoth
+                     + (need1 - common) * (long) cost1
+                     + (need2 - common) * (long) cost2;
+
+        // Option 3: Buy only type 3 items
+        long option3 = (long) Math.max(need1, need2) * costBoth;
+
+        return Math.min(option1, Math.min(option2, option3));
+    }
+}
+
+
+
+
+Approach: Greedy + Mathematics
+
+We have three choices:
+- Buy type 1 items for cost1 each.
+- Buy type 2 items for cost2 each.
+- Buy type 3 items for costBoth each, which satisfy both requirements simultaneously.
+The key observation is that buying a type 3 item is beneficial when it costs less than buying one type 1 and one type 2 item together.
+\[
+costBoth < cost1 + cost2
+\]
+
+We can calculate the answer by considering two possibilities.
+1. Case 1: Buy type 3 items for the common requirement
+Buy:
+\[
+common = \min(need1, need2)
+\]
+
+type 3 items.
+
+Then purchase the remaining requirements individually.
+\[
+ans = common \times costBoth
+\]
+
+\[
++ (need1-common)\times cost1
+\]
+
+\[
++ (need2-common)\times cost2
+\]
+
+2. Case 2: Buy only type 3 items
+We can also buy enough type 3 items to satisfy the larger requirement.
+\[
+ans2 = \max(need1,need2)\times costBoth
+\]
+
+This might be cheaper than buying individual items for the remaining requirement.
+
+Dry Run
+Example 1:
+cost1 = 3
+cost2 = 2
+costBoth = 1
+need1 = 3
+need2 = 2
+
+
+common = min(3, 2) = 2
+
+Option 1:
+\[
+2(1)+(3-2)(3)+(2-2)(2)=5
+\]
+
+Option 2:
+\[
+3(1)=3
+\]
+
+Minimum:
+\[
+\boxed{3}
+\]
+
+Output: 3
+Complexity Analysis
+- Time Complexity: \(O(1)\) — only a few arithmetic operations.
+- Space Complexity: \(O(1)\) — no additional data structures.
+Important: We use long because the requirements can be as large as \(10^9\), and the total cost can exceed the 32-bit integer range.
