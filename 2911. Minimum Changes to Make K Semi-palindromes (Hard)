@@ -1,0 +1,242 @@
+2911. Minimum Changes to Make K Semi-palindromes (Hard)
+
+Given a string s and an integer k, partition s into k substrings such that the letter changes needed to make each substring a semi-palindrome are minimized.
+
+Return the minimum number of letter changes required.
+
+A semi-palindrome is a special type of string that can be divided into palindromes based on a repeating pattern. To check if a string is a semi-palindrome:​
+
+    Choose a positive divisor d of the string's length. d can range from 1 up to, but not including, the string's length. For a string of length 1, it does not have a valid divisor as per this definition, since the only divisor is its length, which is not allowed.
+    For a given divisor d, divide the string into groups where each group contains characters from the string that follow a repeating pattern of length d. Specifically, the first group consists of characters at positions 1, 1 + d, 1 + 2d, and so on; the second group includes characters at positions 2, 2 + d, 2 + 2d, etc.
+    The string is considered a semi-palindrome if each of these groups forms a palindrome.
+
+Consider the string "abcabc":
+
+    The length of "abcabc" is 6. Valid divisors are 1, 2, and 3.
+    For d = 1: The entire string "abcabc" forms one group. Not a palindrome.
+    For d = 2:
+        Group 1 (positions 1, 3, 5): "acb"
+        Group 2 (positions 2, 4, 6): "bac"
+        Neither group forms a palindrome.
+    For d = 3:
+        Group 1 (positions 1, 4): "aa"
+        Group 2 (positions 2, 5): "bb"
+        Group 3 (positions 3, 6): "cc"
+        All groups form palindromes. Therefore, "abcabc" is a semi-palindrome.
+
+ 
+
+Example 1:
+
+Input: s = "abcac", k = 2
+
+Output: 1
+
+Explanation: Divide s into "ab" and "cac". "cac" is already semi-palindrome. Change "ab" to "aa", it becomes semi-palindrome with d = 1.
+
+Example 2:
+
+Input: s = "abcdef", k = 2
+
+Output: 2
+
+Explanation: Divide s into substrings "abc" and "def". Each needs one change to become semi-palindrome.
+
+Example 3:
+
+Input: s = "aabbaa", k = 3
+
+Output: 0
+
+Explanation: Divide s into substrings "aa", "bb" and "aa". All are already semi-palindromes.
+
+ 
+
+Constraints:
+
+    2 <= s.length <= 200
+    1 <= k <= s.length / 2
+    s contains only lowercase English letters.
+
+
+Approach: Precomputation + Dynamic Programming
+
+This problem can be divided into two parts:
+1. Calculate the minimum changes required to make every possible substring a semi-palindrome.
+2. Use DP to divide the string into exactly k valid substrings with minimum total changes.
+The important observation is that a semi-palindrome requires every group formed using a valid divisor d to be a palindrome.
+
+For a substring of length len, we try every proper divisor of len and calculate the minimum character changes needed.
+1. Calculate the cost of a semi-palindrome
+Suppose we have:
+s = "abcabc"
+
+
+Its length is 6. Its valid divisors are:
+d = 1, 2, 3
+
+
+For each divisor, compare characters that belong to the same group from opposite ends.
+
+For a divisor d, the minimum changes are:
+\[
+cost(l,r,d)=
+\sum_{i=0}^{d-1}
+\text{mismatches in group }i
+\]
+
+For every pair of positions in a group, if the characters differ, one change is required.
+
+The cost of the substring is the minimum across all valid divisors.
+\[
+cost[l][r]=\min_{d\mid len,\ d<len} cost(l,r,d)
+\]
+
+We precompute this for all substrings.
+
+
+
+Java Solution
+
+import java.util.*;
+
+class Solution {
+    public int minimumChanges(String s, int k) {
+        int n = s.length();
+        int INF = 1_000_000_000;
+
+        // Step 1: Precompute cost of every substring
+        int[][] cost = new int[n][n];
+
+        for (int[] row : cost) {
+            Arrays.fill(row, INF);
+        }
+
+        for (int len = 2; len <= n; len++) {
+
+            // Try every proper divisor of len
+            for (int d = 1; d < len; d++) {
+
+                if (len % d != 0) {
+                    continue;
+                }
+
+                for (int l = 0; l + len <= n; l++) {
+
+                    int r = l + len - 1;
+                    int changes = 0;
+
+                    // Check each group formed by divisor d
+                    for (int offset = 0; offset < d; offset++) {
+
+                        int left = l + offset;
+                        int right = l + offset
+                                  + ((len - 1 - offset) / d) * d;
+
+                        // Compare characters from opposite ends
+                        while (left < right) {
+
+                            if (s.charAt(left) != s.charAt(right)) {
+                                changes++;
+                            }
+
+                            left += d;
+                            right -= d;
+                        }
+                    }
+
+                    cost[l][r] = Math.min(cost[l][r], changes);
+                }
+            }
+        }
+
+        // Step 2: Dynamic Programming
+        // dp[i][j] = minimum changes to divide first i
+        // characters into exactly j semi-palindromes
+
+        int[][] dp = new int[n + 1][k + 1];
+
+        for (int[] row : dp) {
+            Arrays.fill(row, INF);
+        }
+
+        dp[0][0] = 0;
+
+        for (int parts = 1; parts <= k; parts++) {
+
+            // Each semi-palindrome must have length >= 2
+            for (int i = 2 * parts; i <= n; i++) {
+
+                // Choose where the last substring starts
+                for (int j = 2 * (parts - 1); j <= i - 2; j++) {
+
+                    if (dp[j][parts - 1] == INF) {
+                        continue;
+                    }
+
+                    dp[i][parts] = Math.min(
+                        dp[i][parts],
+                        dp[j][parts - 1] + cost[j][i - 1]
+                    );
+                }
+            }
+        }
+
+        return dp[n][k];
+    }
+}
+
+
+
+3. Dry Run
+Example 1:
+s = "abcac"
+k = 2
+
+
+We need to divide the string into exactly two substrings.
+
+One optimal partition is:
+a
+
+b
+
++
+c
+
+a
+
+c
+
+
+Substring 1: "ab"
+1 change
+
+Change "ab" to "aa".
+
+Substring 2: "cac"
+0 changes
+
+Already a palindrome with divisor d = 1.
+
+Total changes
+1
+
+
+Output: 1
+4. Complexity Analysis
+Let n be the length of the string.
+Part	Complexity
+Precompute substring costs	\(O(n^3 \log n)\) upper bound
+Dynamic Programming	\(O(kn^2)\)
+Space	\(O(n^2+nk)\)
+
+- Time Complexity: \(O(n^3\log n+kn^2)\)
+- Space Complexity: \(O(n^2+nk)\)
+Important points:
+1. A substring of length 1 cannot be a semi-palindrome, so every partition must contain substrings of length at least 2.
+2. We try only proper divisors of the substring length.
+3. The DP guarantees exactly k non-overlapping substrings.
+4. We precompute costs so that DP transitions are \(O(1)\).
+This solution handles the constraint \(n\leq 200\).
+
