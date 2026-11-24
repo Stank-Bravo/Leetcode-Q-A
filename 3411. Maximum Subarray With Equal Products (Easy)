@@ -1,0 +1,138 @@
+3411. Maximum Subarray With Equal Products (Easy)
+
+You are given an array of positive integers nums.
+
+An array arr is called product equivalent if prod(arr) == lcm(arr) * gcd(arr), where:
+
+    prod(arr) is the product of all elements of arr.
+    gcd(arr) is the GCD of all elements of arr.
+    lcm(arr) is the LCM of all elements of arr.
+
+Return the length of the longest product equivalent subarray of nums.
+
+ 
+
+Example 1:
+
+Input: nums = [1,2,1,2,1,1,1]
+
+Output: 5
+
+Explanation: 
+
+The longest product equivalent subarray is [1, 2, 1, 1, 1], where prod([1, 2, 1, 1, 1]) = 2, gcd([1, 2, 1, 1, 1]) = 1, and lcm([1, 2, 1, 1, 1]) = 2.
+
+Example 2:
+
+Input: nums = [2,3,4,5,6]
+
+Output: 3
+
+Explanation: 
+
+The longest product equivalent subarray is [3, 4, 5].
+
+Example 3:
+
+Input: nums = [1,2,3,1,4,5,1]
+
+Output: 5
+
+ 
+
+Constraints:
+
+    2 <= nums.length <= 100
+    1 <= nums[i] <= 10
+
+
+
+Approach: Brute Force + GCD + LCM
+
+Since the constraints are small (nums.length <= 100 and nums[i] <= 10), we can check every possible subarray.
+
+A subarray is product equivalent when:
+\[
+Product = GCD \times LCM
+\]
+
+We maintain three values while expanding each subarray:
+- product: Product of all elements.
+- gcd: GCD of all elements.
+- lcm: LCM of all elements.
+If the condition is satisfied, update the maximum length.
+Java Solution
+
+class Solution {
+
+    public int maxLength(int[] nums) {
+        int n = nums.length;
+        int maxLen = 0;
+
+        for (int i = 0; i < n; i++) {
+
+            long product = 1;
+            long gcdValue = 0;
+            long lcmValue = 1;
+
+            for (int j = i; j < n; j++) {
+
+                int num = nums[j];
+
+                // Update product
+                product *= num;
+
+                // Update GCD
+                gcdValue = gcd(gcdValue, num);
+
+                // Update LCM
+                lcmValue = (lcmValue / gcd(lcmValue, num)) * num;
+
+                // Check product equivalence
+                if (product == gcdValue * lcmValue) {
+                    maxLen = Math.max(maxLen, j - i + 1);
+                }
+            }
+        }
+
+        return maxLen;
+    }
+
+    private long gcd(long a, long b) {
+        while (b != 0) {
+            long temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+}
+
+
+
+Dry Run
+Input:
+nums = [2, 3, 4, 5, 6]
+
+
+Consider the subarray [3, 4, 5]:
+Property	Calculation	Result
+Product	3 × 4 × 5	60
+GCD	GCD(3, 4, 5)	1
+LCM	LCM(3, 4, 5)	60
+
+Check:
+\[
+60 = 1 \times 60
+\]
+
+Therefore, [3, 4, 5] is product equivalent.
+
+Its length is 3.
+
+Output: 3
+Complexity Analysis
+Let n be the array length.
+- Time Complexity: \(O(n^2\log M)\), where \(M\) is the maximum value in the array. We examine all subarrays and update GCD/LCM efficiently.
+- Space Complexity: \(O(1)\), as we use only a few variables.
+Important: We use long for product and LCM calculations to avoid integer overflow during intermediate calculations.
