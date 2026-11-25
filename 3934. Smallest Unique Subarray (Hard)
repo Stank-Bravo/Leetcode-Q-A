@@ -1,0 +1,299 @@
+3934. Smallest Unique Subarray (Hard)
+
+You are given an integer array nums.
+
+Find the minimum length of a subarray that is not identical to any other subarray in nums.
+
+Return an integer denoting the minimum possible length of such a subarray.
+
+Two subarrays are considered identical if they have the same length and the same elements in corresponding positions.
+
+ 
+
+Example 1:
+
+Input: nums = [3,3,3]
+
+Output: 3
+
+Explanation:
+
+    Subarrays of length 1: [3] → appears 3 times
+    Subarrays of length 2: [3, 3] → appears 2 times
+    Subarrays of length 3: [3, 3, 3] → appears once
+
+The subarray [3, 3, 3] is unique, so the smallest unique subarray length is 3.
+
+Example 2:
+
+Input: nums = [2,1,2,3,3]
+
+Output: 1
+
+Explanation:
+
+Subarrays of length 1:
+
+    [2] → appears 2 times
+    [1] → appears once
+    [3] → appears 2 times
+
+The subarray [1] is unique, so the smallest unique subarray length is 1.
+
+Example 3:
+
+Input: nums = [1,1,2,2,1]
+
+Output: 2
+
+Explanation:
+
+Subarrays of length 1:
+
+    [1] → appears 3 times
+    [2] → appears 2 times
+
+Subarrays of length 2:
+
+    [1, 1] → appears once
+    [1, 2] → appears once
+    [2, 2] → appears once
+    [2, 1] → appears once
+
+There is at least one subarray of length 2 that is unique, so the smallest unique subarray length is 2.
+
+ 
+
+Constraints:
+
+    1 <= nums.length <= 10^5
+    1 <= nums[i] <= 10^5
+
+
+
+Answer:
+import java.util.Arrays;
+
+class Solution {
+    public int smallestUniqueSubarray(int[] nums) {
+        int n = nums.length;
+
+        if (n == 1) {
+            return 1;
+        }
+
+        int[] suffixArray = buildSuffixArray(nums);
+        int[] rank = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            rank[suffixArray[i]] = i;
+        }
+
+        // lcp[r] = LCP of suffixArray[r] and suffixArray[r - 1]
+        int[] lcp = new int[n];
+        int h = 0;
+
+        for (int i = 0; i < n; i++) {
+            int r = rank[i];
+
+            if (r == 0) {
+                continue;
+            }
+
+            int j = suffixArray[r - 1];
+
+            while (i + h < n && j + h < n
+                    && nums[i + h] == nums[j + h]) {
+                h++;
+            }
+
+            lcp[r] = h;
+
+            if (h > 0) {
+                h--;
+            }
+        }
+
+        int answer = n;
+
+        for (int r = 0; r < n; r++) {
+            int start = suffixArray[r];
+            int suffixLength = n - start;
+
+            int maxLcp = lcp[r];
+
+            // LCP with the next suffix in sorted order
+            if (r + 1 < n) {
+                maxLcp = Math.max(maxLcp, lcp[r + 1]);
+            }
+
+            // If the whole suffix is repeated, it has no unique
+            // subarray starting at this position.
+            if (maxLcp < suffixLength) {
+                answer = Math.min(answer, maxLcp + 1);
+            }
+        }
+
+        return answer;
+    }
+
+    private int[] buildSuffixArray(int[] nums) {
+        int n = nums.length;
+        int N = n + 1; // Include a sentinel at the end
+
+        // Coordinate compression: values become 1..m.
+        // Sentinel remains 0, smaller than every value.
+        int[] sorted = nums.clone();
+        Arrays.sort(sorted);
+
+        int m = 0;
+        for (int i = 0; i < n; i++) {
+            if (i == 0 || sorted[i] != sorted[i - 1]) {
+                sorted[m++] = sorted[i];
+            }
+        }
+
+        int[] a = new int[N];
+
+        for (int i = 0; i < n; i++) {
+            a[i] = Arrays.binarySearch(sorted, 0, m, nums[i]) + 1;
+        }
+
+        a[n] = 0;
+
+        int[] p = new int[N];
+        int[] c = new int[N];
+
+        // Initial counting sort by symbol
+        int[] count = new int[Math.max(N, m + 1)];
+
+        for (int value : a) {
+            count[value]++;
+        }
+
+        for (int i = 1; i < count.length; i++) {
+            count[i] += count[i - 1];
+        }
+
+        for (int i = N - 1; i >= 0; i--) {
+            p[--count[a[i]]] = i;
+        }
+
+        int classes = 1;
+        c[p[0]] = 0;
+
+        for (int i = 1; i < N; i++) {
+            if (a[p[i]] != a[p[i - 1]]) {
+                classes++;
+            }
+            c[p[i]] = classes - 1;
+        }
+
+        int[] pn = new int[N];
+        int[] cn = new int[N];
+
+        // Sort cyclic shifts by doubling
+        for (int len = 1; len < N; len <<= 1) {
+            for (int i = 0; i < N; i++) {
+                pn[i] = p[i] - len;
+                if (pn[i] < 0) {
+                    pn[i] += N;
+                }
+            }
+
+            Arrays.fill(count, 0, classes, 0);
+
+            for (int i = 0; i < N; i++) {
+                count[c[pn[i]]]++;
+            }
+
+            for (int i = 1; i < classes; i++) {
+                count[i] += count[i - 1];
+            }
+
+            for (int i = N - 1; i >= 0; i--) {
+                p[--count[c[pn[i]]]] = pn[i];
+            }
+
+            int newClasses = 1;
+            cn[p[0]] = 0;
+
+            for (int i = 1; i < N; i++) {
+                int cur = p[i];
+                int prev = p[i - 1];
+
+                int midCur = (cur + len) % N;
+                int midPrev = (prev + len) % N;
+
+                if (c[cur] != c[prev]
+                        || c[midCur] != c[midPrev]) {
+                    newClasses++;
+                }
+
+                cn[cur] = newClasses - 1;
+            }
+
+            int[] temp = c;
+            c = cn;
+            cn = temp;
+
+            classes = newClasses;
+        }
+
+        // Remove the sentinel suffix at position n
+        int[] suffixArray = new int[n];
+        int index = 0;
+
+        for (int i = 0; i < N; i++) {
+            if (p[i] != n) {
+                suffixArray[index++] = p[i];
+            }
+        }
+
+        return suffixArray;
+    }
+}
+
+
+
+
+
+Approach: Sliding Window + Hashing
+
+We need to find the smallest length len such that at least one subarray of that length appears exactly once in the entire array.
+
+Since n <= 100,000, checking every subarray directly would be too slow.
+
+We can use a rolling hash to represent each subarray efficiently and count how many times each hash occurs.
+
+
+Dry Run
+Input: nums = [1, 1, 2, 2, 1]
+
+Length 1:
+[1] -> appears 3 times
+[2] -> appears 2 times
+
+
+No unique subarray of length 1.
+
+Length 2:
+[1,1] -> 1 time
+[1,2] -> 1 time
+[2,2] -> 1 time
+[2,1] -> 1 time
+
+
+Every subarray of length 2 is unique.
+
+Output: 2
+Complexity Analysis
+- Time Complexity: \(O(n^2)\) in the worst case due to checking each length and its windows.
+- Space Complexity: \(O(n)\) for the frequency map.
+This approach is not optimal for the maximum constraint. A more efficient solution would use suffix arrays or suffix automata to find the shortest unique subarray in \(O(n\log n)\) or better.
+
+
+
+
+
+
