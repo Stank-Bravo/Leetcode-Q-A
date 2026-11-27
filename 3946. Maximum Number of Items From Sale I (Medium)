@@ -1,0 +1,139 @@
+3946. Maximum Number of Items From Sale I (Medium)
+
+
+You are given a 2D integer array items, where items[i] = [factori, pricei] represents the ith item. You are also given an integer budget.
+
+There are unlimited copies of each item available for purchase.You may buy any number of copies of any items such that the total cost of the purchased copies is at most budget.
+
+After buying items, you may receive free copies according to the following rules:
+
+    For each item i that you bought at least one copy of, you receive one free copy of every item j such that j != i and factori divides factorj.
+    Buying multiple copies of the same item i does not give additional free copies through item i.
+    The same item j can be received multiple times for free if it is received from purchases of different item types.
+
+Return the maximum total number of item copies you can obtain, including both purchased copies and free copies, while spending at most budget on purchased items.
+
+ 
+
+Example 1:
+
+Input: items = [[6,2],[2,6],[3,4]], budget = 9
+
+Output: 4
+
+Explanation:
+
+    You can buy 2 copies of item 0 and 1 copy of item 2 for a total cost of 2 * 2 + 4 = 8, which is not greater than budget = 9.
+    Buying item 2 gives 1 free copy of item 0, because factor2 = 3 divides factor0 = 6.
+    You leave with 3 purchased copies and 1 free copy, for a total of 4 item copies.
+
+Example 2:
+
+Input: items = [[2,4],[3,2],[4,1],[6,4],[12,4]], budget = 8
+
+Output: 10
+
+Explanation:
+
+    You can buy 1 copy of item 0, 1 copy of item 1, and 2 copies of item 2 for a total cost of 4 + 2 + 2 * 1 = 8.
+    Buying item 0 gives 1 free copy of items 2, 3, and 4.
+    Buying item 1 gives 1 free copy of items 3 and 4.
+    Buying item 2 gives 1 free copy of item 4.
+    Thus, you receive 6 free copies. You leave with 4 purchased copies and 6 free copies, for a total of 10 item copies.
+
+ 
+
+Constraints:
+
+    1 <= items.length <= 1000
+    items[i] = [factori, pricei]
+    1 <= factori, pricei <= 1500
+    1 <= budget <= 1500
+
+
+
+Approach: 0/1 DP with optimized transitions
+For each item type i, define:
+- price[i]: cost of buying one copy.
+- free[i]: number of other item types whose factor is divisible by factor[i].
+Buying x ≥ 1 copies of item i costs x * price[i] and gives:
+\[
+x + free[i]
+\]
+
+total items. The free-copy bonus is received only once, regardless of how many copies we buy.
+
+We can treat each item type as a 0/1 choice of activation, with the number of copies chosen together with that activation. For each item, either:
+- Buy zero copies and get no bonus.
+- Buy one or more copies and get the bonus once.
+A straightforward DP over all possible copy counts would be too slow. Instead, for each item and each remainder modulo its price, we maintain a running maximum. This optimizes the transition to O(budget) per item.
+
+The previous DP idea was unnecessarily complicated. The standard solution is much simpler: 0/1 knapsack for the first copy of each item type, then use the remaining budget to buy the cheapest item repeatedly.
+Java solution
+The expected LeetCode method name is maximumSaleItems.
+class Solution {
+    public int maximumSaleItems(int[][] items, int budget) {
+        int n = items.length;
+        int minPrice = Integer.MAX_VALUE;
+
+        int[] dp = new int[budget + 1];
+
+        for (int[] item : items) {
+            minPrice = Math.min(minPrice, item[1]);
+        }
+
+        // 0/1 knapsack: activate each item type at most once
+        for (int i = 0; i < n; i++) {
+            int factor = items[i][0];
+            int price = items[i][1];
+
+            int gain = 0;
+
+            // First purchase: purchased item + free copies
+            for (int j = 0; j < n; j++) {
+                if (items[j][0] % factor == 0) {
+                    gain++;
+                }
+            }
+
+            // Descending order ensures this item is activated once
+            for (int cost = budget; cost >= price; cost--) {
+                dp[cost] = Math.max(
+                    dp[cost],
+                    dp[cost - price] + gain
+                );
+            }
+        }
+
+        int answer = 0;
+
+        // Spend leftover budget on cheapest items
+        for (int spent = 0; spent <= budget; spent++) {
+            int total = dp[spent]
+                      + (budget - spent) / minPrice;
+
+            answer = Math.max(answer, total);
+        }
+
+        return answer;
+    }
+}
+
+
+Explanation
+For each item type, gain counts all items whose factor is divisible by its factor. This count includes the item itself, because its first purchase gives:
+- 1 purchased copy of itself
+- Free copies of all other divisible items
+So the first purchase's total gain is exactly gain.
+
+We use 0/1 knapsack because each item type's free-copy bonus can be collected only once. After choosing which types to activate, the remaining budget can buy as many copies as possible of the cheapest item.
+Example
+items = [[6,2],[2,6],[3,4]], budget = 9
+- Buying the item with factor 3 costs 4 and gives 2 total items: itself plus one free item with factor 6.
+- Buying two copies of the cheapest item costs 4 and gives 2 purchased copies.
+- Total: 4 items, spending 8.
+Output: 4
+Complexity
+- Time: \(O(n^2+n\cdot budget)\)
+- Space: \(O(budget)\)
+The method signature is confirmed as maximumSaleItems(int[][] items, int budget).
